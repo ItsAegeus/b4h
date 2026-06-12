@@ -13,100 +13,131 @@
   --paper: #ECEFE9; --ink: #21302A; --ink-soft: #5C6B63; --card: #FFFFFF;
   --line: #D5DCD4; --green: #2F7A52; --green-soft: #DDEAE1;
   --amber: #C8862F; --amber-soft: #F3E6D2; --red: #B5432F; --red-soft: #F2DCD7;
-  --blue: #3A5E7A;
+  --blue: #3A5E7A; --purple: #7A5EA8;
 }
 * { box-sizing: border-box; }
 body {
   font-family: 'IBM Plex Sans', system-ui, sans-serif;
   background: var(--paper); color: var(--ink); margin: 0;
-  padding: 16px 14px 80px;
+  padding: 0 0 80px;
 }
-.wrap { max-width: 560px; margin: 0 auto; }
+.wrap { max-width: 560px; margin: 0 auto; padding: 12px 14px 0; }
 .mono { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
 .display { font-family: 'Zilla Slab', serif; }
 .hidden { display: none !important; }
+.note { font-size: 13px; color: var(--ink-soft); }
+.subtle { color: var(--ink-soft); font-size: 12px; }
 
-.topbar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--ink-soft); margin-bottom: 10px; min-height: 18px; }
+/* ---- header bar ---- */
+.header {
+  background: var(--card); border-bottom: 1px solid var(--line);
+  padding: 10px 14px; display: flex; align-items: center; gap: 10px;
+  position: sticky; top: 0; z-index: 10;
+}
+.header .title { font-family: 'Zilla Slab', serif; font-size: 18px; font-weight: 600; flex: 1; }
+.header .gear {
+  background: none; border: 1px solid var(--line); border-radius: 8px;
+  width: 36px; height: 36px; font-size: 16px; cursor: pointer; color: var(--ink-soft);
+}
+.header .gear:focus-visible { outline: 2px solid var(--green); }
+.savestate { font-size: 11px; color: var(--ink-soft); min-height: 14px; }
+.savestate .ok { color: var(--green); }
+.savestate .bad { color: var(--red); }
 
-.monthbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+/* ---- tab bar ---- */
+.tabs {
+  background: var(--card); border-bottom: 1px solid var(--line);
+  display: flex; position: sticky; top: 57px; z-index: 9;
+}
+.tabs button {
+  flex: 1; padding: 12px 4px; font-family: inherit; font-size: 13px; font-weight: 500;
+  background: none; border: none; color: var(--ink-soft); cursor: pointer;
+  border-bottom: 3px solid transparent; transition: border-color 0.15s;
+}
+.tabs button.on { color: var(--green); border-bottom-color: var(--green); font-weight: 600; }
+.tabs button:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
+.tab-emoji { display: block; font-size: 18px; line-height: 1; margin-bottom: 2px; }
+
+/* ---- month bar ---- */
+.monthbar { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 4px; }
 .monthbar button {
   background: none; border: 1px solid var(--line); border-radius: 8px;
   width: 38px; height: 38px; font-size: 18px; color: var(--ink); cursor: pointer;
 }
 .monthbar button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
-.month-title { font-size: 24px; font-weight: 600; }
-.savestate { text-align: center; font-size: 12px; color: var(--ink-soft); min-height: 16px; margin-top: 2px; }
-.savestate .ok { color: var(--green); }
-.savestate .bad { color: var(--red); }
+.month-title { font-size: 22px; font-weight: 600; }
 
-.plan { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin: 12px 0 6px; padding: 12px 14px; }
-.plan-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 15px; }
-.plan-row .lbl { color: var(--ink-soft); }
-.plan-row.total { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 9px; font-weight: 600; }
-.plan-row.total .lbl { color: var(--ink); }
+/* ---- cards & layout ---- */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+.card-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 15px; }
+.card-row.total { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 9px; font-weight: 600; }
+.card-row .lbl { color: var(--ink-soft); }
+.card-row.total .lbl { color: var(--ink); }
+
 .alert { border-radius: 10px; padding: 10px 12px; font-size: 14px; margin: 8px 0 0; }
 .alert.bad { background: var(--red-soft); color: var(--red); }
 .alert.good { background: var(--green-soft); color: var(--green); }
 
-.charts { display: flex; gap: 12px; margin: 12px 0 0; }
-.chart-box { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; }
-.chart-title { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; font-weight: 600; letter-spacing: 0.04em; }
-.chart-svg { width: 100%; height: auto; max-width: 140px; display: block; margin: 0 auto; }
-.legend { font-size: 11px; margin-top: 6px; text-align: left; }
-.legend-row { display: flex; align-items: center; gap: 5px; padding: 1px 0; line-height: 1.3; }
-.legend-sw { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
-.legend-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.legend-val { font-family: 'IBM Plex Mono', monospace; color: var(--ink-soft); font-size: 10px; }
-
-.jar { background: linear-gradient(180deg, #fff 0%, #FFF8E7 100%); border: 1px solid #E8D5A8; }
-.jar .jar-amount { font-family: 'Zilla Slab', serif; font-size: 28px; font-weight: 600; color: var(--amber); }
-.jar .jar-label { font-size: 12px; color: var(--ink-soft); }
-
-.payperiod-tabs { display: flex; gap: 6px; margin: 10px 0 6px; }
-.payperiod-tabs button {
-  flex: 1; font-family: inherit; font-size: 13px; padding: 8px;
-  background: var(--card); border: 1px solid var(--line); border-radius: 8px;
-  color: var(--ink-soft); cursor: pointer;
-}
-.payperiod-tabs button.on { background: var(--green); color: #fff; border-color: var(--green); font-weight: 600; }
-.payperiod-tabs button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-
-.cash-toggle {
-  display: inline-flex; align-items: center; gap: 4px; font-size: 11px;
-  padding: 2px 8px; border-radius: 10px; background: var(--paper); color: var(--ink-soft);
-  border: 1px solid var(--line); cursor: pointer; font-family: inherit;
-}
-.cash-toggle.on { background: var(--amber-soft); color: var(--amber); border-color: var(--amber); font-weight: 600; }
-.cash-toggle:focus-visible { outline: 2px solid var(--green); }
-
-.cash-status { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 6px; font-size: 13px; }
-.cash-status .item { display: flex; flex-direction: column; }
-.cash-status .lbl { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
-.cash-status .val { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
-.cash-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-
 .threecheck-banner {
   background: linear-gradient(135deg, #DDEAE1, #F3E6D2);
   border: 1px solid var(--green); border-radius: 12px;
-  padding: 12px 14px; margin: 12px 0; font-size: 14px;
+  padding: 12px 14px; margin: 0 0 10px; font-size: 14px;
 }
 .threecheck-banner strong { color: var(--green); }
 
+/* ---- section titles ---- */
 .section-title {
-  font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--ink-soft); margin: 22px 0 10px; font-weight: 600;
+  font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-soft); margin: 18px 0 8px; font-weight: 600;
   display: flex; justify-content: space-between; align-items: baseline;
 }
 .section-title .hint { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 12px; }
 
+/* ---- forms ---- */
+input, select, textarea {
+  font-family: inherit; font-size: 16px;
+  border: 1px solid var(--line); border-radius: 8px; background: #FAFBF9;
+  color: var(--ink);
+}
+input, select { padding: 10px; width: 100%; min-width: 0; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--green); }
+.row { display: flex; gap: 8px; }
+.row > * { flex: 1; min-width: 0; }
+.row.wrap { flex-wrap: wrap; }
+
+.btn {
+  font-family: inherit; font-size: 15px; font-weight: 600; padding: 11px;
+  border: none; border-radius: 8px; background: var(--green); color: #fff;
+  cursor: pointer; width: 100%;
+}
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.auto { width: auto; padding: 11px 16px; }
+.btn.ghost { background: none; color: var(--ink-soft); text-decoration: underline; }
+.minibtn {
+  font-family: inherit; font-size: 13px; font-weight: 600; padding: 7px 11px;
+  border: none; border-radius: 7px; background: var(--green); color: #fff; cursor: pointer;
+}
+.minibtn.ghost { background: none; color: var(--ink-soft); text-decoration: underline; padding: 7px 4px; font-weight: 500; }
+.minibtn.danger { background: var(--red); }
+.minibtn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.linkbtn {
+  background: none; border: none; padding: 0; font-size: 13px; color: var(--ink-soft);
+  text-decoration: underline; cursor: pointer; font-family: inherit;
+}
+.linkbtn:focus-visible { outline: 2px solid var(--green); }
+.del { background: none; border: none; color: var(--ink-soft); font-size: 16px; cursor: pointer; padding: 4px 8px; }
+.del:focus-visible { outline: 2px solid var(--red); }
+
+/* ---- commitments ---- */
 .commit {
   display: flex; align-items: center; gap: 10px; background: var(--card);
   border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
   margin-bottom: 8px; flex-wrap: wrap;
 }
-.commit.paid { opacity: 0.6; }
+.commit.paid { opacity: 0.55; }
 .check {
-  width: 26px; height: 26px; border-radius: 7px; border: 2px solid var(--line);
+  width: 28px; height: 28px; border-radius: 7px; border: 2px solid var(--line);
   background: #FAFBF9; cursor: pointer; flex-shrink: 0; font-size: 15px; line-height: 1;
   color: #fff; display: flex; align-items: center; justify-content: center; padding: 0;
 }
@@ -115,262 +146,347 @@ body {
 .commit .body { flex: 1; min-width: 0; }
 .commit .name { font-size: 15px; font-weight: 500; }
 .commit .tag { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
-.tag.bill { color: var(--blue); } .tag.debt { color: var(--red); } .tag.savings { color: var(--green); } .tag.yearly { color: #7A5EA8; }
+.tag.bill { color: var(--blue); } .tag.debt { color: var(--red); } .tag.savings { color: var(--green); } .tag.yearly { color: var(--purple); }
 .commit .amt { font-weight: 600; }
+.due { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.due.soon { color: var(--amber); font-weight: 600; }
+.due.over { color: var(--red); font-weight: 600; }
+.history-strip { margin-top: 3px; font-size: 10px; color: var(--ink-soft); display: flex; gap: 6px; flex-wrap: wrap; }
+.history-strip .h-item { padding: 1px 5px; background: var(--paper); border-radius: 4px; font-family: 'IBM Plex Mono', monospace; }
 
+/* ---- inline editors ---- */
+.edit-stack { display: flex; flex-direction: column; gap: 6px; flex: 1 1 100%; margin-top: 4px; }
+.edit-stack label { font-size: 12px; color: var(--ink-soft); }
+.edit-stack input, .edit-stack select {
+  font-size: 16px; padding: 9px;
+  border: 2px solid var(--green); background: #fff;
+}
+.edit-stack .btns { display: flex; gap: 6px; }
 .inline-edit { display: flex; gap: 6px; align-items: center; }
 .inline-edit input {
   font-family: 'IBM Plex Mono', monospace; font-size: 15px; padding: 7px 9px;
   border: 2px solid var(--green); border-radius: 8px; width: 110px; background: #fff;
 }
-.edit-stack { display: flex; flex-direction: column; gap: 6px; flex: 1 1 100%; margin-top: 4px; }
-.edit-stack label { font-size: 12px; color: var(--ink-soft); }
-.edit-stack input, .edit-stack select {
-  font-family: inherit; font-size: 16px; padding: 9px;
-  border: 2px solid var(--green); border-radius: 8px; background: #fff; width: 100%;
-}
-.edit-stack .btns { display: flex; gap: 6px; }
-.due { font-size: 12px; color: var(--ink-soft); }
-.due.soon { color: var(--amber); font-weight: 600; }
-.due.over { color: var(--red); font-weight: 600; }
 
-.minibtn {
-  font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 12px;
-  border: none; border-radius: 8px; background: var(--green); color: #fff; cursor: pointer;
-}
-.minibtn.ghost { background: none; color: var(--ink-soft); text-decoration: underline; padding: 8px 4px; }
-.minibtn.danger { background: var(--red); }
-.minibtn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-
-.addform {
-  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-  padding: 12px; display: flex; flex-direction: column; gap: 8px;
-}
-.addform .row { display: flex; gap: 8px; }
-.addform input, .addform select, .newrow input, .newrow select {
-  font-family: inherit; font-size: 16px; padding: 10px;
-  border: 1px solid var(--line); border-radius: 8px; background: #FAFBF9;
-  color: var(--ink); width: 100%; min-width: 0;
-}
-.addform input:focus-visible, .addform select:focus-visible,
-.newrow input:focus-visible, .newrow select:focus-visible { outline: 2px solid var(--green); }
-.btn {
-  font-family: inherit; font-size: 15px; font-weight: 600; padding: 11px;
-  border: none; border-radius: 8px; background: var(--green); color: #fff;
-  cursor: pointer; width: 100%;
-}
-.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.btn:disabled { opacity: 0.45; cursor: default; }
-.btn.auto { width: auto; }
-.btn.ghost { background: none; color: var(--ink-soft); text-decoration: underline; }
-
+/* ---- envelopes ---- */
 .envelope {
   position: relative; background: var(--card); border: 1px solid var(--line);
-  border-radius: 12px; padding: 14px 14px 16px; margin-bottom: 10px; overflow: hidden;
+  border-radius: 12px; padding: 14px; margin-bottom: 10px; overflow: hidden;
 }
 .fill { position: absolute; left: 0; bottom: 0; width: 100%; background: var(--green-soft); z-index: 0; transition: height 0.4s ease; }
 @media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
 .fill.warn { background: var(--amber-soft); } .fill.over { background: var(--red-soft); }
 .env-content { position: relative; z-index: 1; }
-.env-top { display: flex; justify-content: space-between; align-items: baseline; }
-.env-name { font-size: 18px; font-weight: 600; }
-.env-remaining { font-size: 15px; font-weight: 600; }
+.env-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.env-name { font-size: 17px; font-weight: 600; }
+.env-name .badge { font-size: 11px; font-weight: 400; color: var(--ink-soft); font-family: 'IBM Plex Sans', sans-serif; margin-left: 4px; }
+.env-name .badge.cash { color: var(--amber); }
+.env-remaining { font-size: 15px; font-weight: 600; text-align: right; }
 .env-remaining.warn { color: var(--amber); } .env-remaining.over { color: var(--red); } .env-remaining.ok { color: var(--green); }
 .env-sub { display: flex; justify-content: space-between; margin-top: 6px; font-size: 13px; color: var(--ink-soft); flex-wrap: wrap; gap: 2px; }
 .env-actions { margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-.linkbtn {
-  background: none; border: none; padding: 0; font-size: 13px; color: var(--ink-soft);
-  text-decoration: underline; cursor: pointer; font-family: inherit;
-}
-.linkbtn:focus-visible { outline: 2px solid var(--green); }
 
+.cash-toggle {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 11px;
+  padding: 3px 9px; border-radius: 12px; background: var(--paper); color: var(--ink-soft);
+  border: 1px solid var(--line); cursor: pointer; font-family: inherit;
+}
+.cash-toggle.on { background: var(--amber-soft); color: var(--amber); border-color: var(--amber); font-weight: 600; }
+.cash-toggle:focus-visible { outline: 2px solid var(--green); }
+.cash-status { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 8px; font-size: 13px; }
+.cash-status .item { display: flex; flex-direction: column; }
+.cash-status .lbl { font-size: 10px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+.cash-status .val { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 14px; }
+.cash-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+/* ---- pay-period tabs ---- */
+.payperiod-tabs { display: flex; gap: 6px; margin: 10px 0 6px; }
+.payperiod-tabs button {
+  flex: 1; font-family: inherit; font-size: 12px; padding: 8px 4px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+  color: var(--ink-soft); cursor: pointer; line-height: 1.3;
+}
+.payperiod-tabs button.on { background: var(--green); color: #fff; border-color: var(--green); font-weight: 600; }
+.payperiod-tabs button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* ---- expenses ---- */
 .expense {
   display: flex; justify-content: space-between; align-items: center;
   background: var(--card); border: 1px solid var(--line); border-radius: 10px;
-  padding: 10px 12px; margin-bottom: 8px;
+  padding: 9px 12px; margin-bottom: 6px;
 }
-.expense .meta { font-size: 13px; color: var(--ink-soft); }
+.expense .meta { font-size: 12px; color: var(--ink-soft); }
 .expense .amt { font-weight: 600; }
-.del { background: none; border: none; color: var(--ink-soft); font-size: 16px; cursor: pointer; padding: 4px 8px; }
-.del:focus-visible { outline: 2px solid var(--red); }
-
 .empty {
   text-align: center; color: var(--ink-soft); font-size: 14px; padding: 18px 10px;
   border: 1px dashed var(--line); border-radius: 10px;
 }
-.newrow { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
-.newrow input[type="text"] { flex: 2; }
-.newrow input[type="number"] { flex: 1; width: 80px; }
-.newrow button { width: auto; padding: 10px 14px; }
-#newCommitName { flex: 1 1 100%; }
-#newCommitAmt { flex: 1 1 80px; }
-#newCommitDue { flex: 1 1 80px; }
-#newCommitKind { flex: 1 1 100px; width: auto; }
-#newCommitMonth { flex: 1 1 110px; width: auto; }
-#addCommitBtn { flex: 0 0 auto; }
-.ta {
-  font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 10px;
-  border: 1px solid var(--line); border-radius: 8px; background: #FAFBF9;
-  color: var(--ink); width: 100%; min-height: 90px; resize: vertical;
-}
-.ta:focus-visible { outline: 2px solid var(--green); }
-.note { font-size: 13px; color: var(--ink-soft); }
 
-/* auth screen */
+/* ---- buckets ---- */
+.bucket {
+  background: linear-gradient(180deg, #fff 0%, #FFF8E7 100%);
+  border: 1px solid #E8D5A8; border-radius: 12px;
+  padding: 12px 14px; margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.bucket.is-savings { background: linear-gradient(180deg, #fff 0%, #E8F1EB 100%); border-color: #B8D5C5; }
+.bucket .b-name { font-size: 14px; color: var(--ink-soft); }
+.bucket .b-name .default-tag { color: var(--green); font-weight: 600; font-size: 11px; margin-left: 5px; }
+.bucket .b-amount { font-family: 'Zilla Slab', serif; font-size: 26px; font-weight: 600; color: var(--amber); }
+.bucket.is-savings .b-amount { color: var(--green); }
+.bucket .b-actions { display: flex; flex-direction: column; gap: 5px; }
+
+/* ---- charts ---- */
+.charts { display: flex; gap: 10px; }
+.chart-box { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; }
+.chart-title { font-size: 11px; color: var(--ink-soft); margin-bottom: 6px; font-weight: 600; letter-spacing: 0.08em; }
+.chart-svg { width: 100%; height: auto; max-width: 130px; display: block; margin: 0 auto; }
+.legend { font-size: 11px; margin-top: 6px; text-align: left; }
+.legend-row { display: flex; align-items: center; gap: 5px; padding: 1px 0; line-height: 1.3; }
+.legend-sw { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+.legend-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.legend-val { font-family: 'IBM Plex Mono', monospace; color: var(--ink-soft); font-size: 10px; }
+
+/* ---- urgent bills list (Home) ---- */
+.urgent-bill {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; margin-bottom: 6px;
+}
+.urgent-bill.over { border-color: var(--red); background: var(--red-soft); }
+.urgent-bill.soon { border-color: var(--amber); background: var(--amber-soft); }
+
+/* ---- settings drawer ---- */
+.drawer {
+  position: fixed; inset: 0; background: rgba(33,48,42,0.4);
+  z-index: 100; display: flex; align-items: flex-end; justify-content: center;
+}
+.drawer-panel {
+  background: var(--paper); border-radius: 16px 16px 0 0;
+  width: 100%; max-width: 560px; max-height: 85vh; overflow-y: auto;
+  padding: 16px 14px 30px; box-shadow: 0 -8px 24px rgba(0,0,0,0.15);
+}
+.drawer-handle {
+  width: 40px; height: 4px; background: var(--line); border-radius: 2px;
+  margin: 0 auto 12px;
+}
+.drawer h2 { font-family: 'Zilla Slab', serif; font-size: 20px; margin: 0 0 12px; }
+
+/* ---- auth ---- */
 .auth-card {
   background: var(--card); border: 1px solid var(--line); border-radius: 14px;
   padding: 24px 18px; margin-top: 60px; display: flex; flex-direction: column; gap: 10px;
 }
 .auth-card h1 { font-family: 'Zilla Slab', serif; font-size: 26px; margin: 0 0 4px; text-align: center; }
 .auth-card .sub { text-align: center; font-size: 13px; color: var(--ink-soft); margin-bottom: 8px; }
-.auth-card input {
-  font-family: inherit; font-size: 16px; padding: 12px;
-  border: 1px solid var(--line); border-radius: 8px; background: #FAFBF9; width: 100%;
-}
-.auth-card input:focus-visible { outline: 2px solid var(--green); }
+.auth-card input { padding: 12px; background: #FAFBF9; border: 1px solid var(--line); }
 .auth-msg { font-size: 13px; min-height: 18px; text-align: center; }
+
+.ta {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: #FAFBF9;
+  color: var(--ink); width: 100%; min-height: 90px; resize: vertical;
+}
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <!-- ============ AUTH SCREEN ============ -->
-  <div id="authScreen" class="hidden">
-    <div class="auth-card">
-      <h1>Household Budget</h1>
-      <div class="sub">Sign in on any device — your budget follows you.</div>
-      <input type="email" id="authEmail" placeholder="Email" autocomplete="email" aria-label="Email">
-      <input type="password" id="authPass" placeholder="Password" autocomplete="current-password" aria-label="Password">
-      <button class="btn" id="signInBtn">Sign in</button>
-      <button class="btn ghost" id="signUpBtn">Create account</button>
-      <div class="auth-msg" id="authMsg"></div>
-    </div>
+<!-- ============ AUTH SCREEN ============ -->
+<div id="authScreen" class="wrap hidden">
+  <div class="auth-card">
+    <h1>Household Budget</h1>
+    <div class="sub">Sign in on any device — your budget follows you.</div>
+    <input type="email" id="authEmail" placeholder="Email" autocomplete="email" aria-label="Email">
+    <input type="password" id="authPass" placeholder="Password" autocomplete="current-password" aria-label="Password">
+    <button class="btn" id="signInBtn">Sign in</button>
+    <button class="btn ghost" id="signUpBtn">Create account</button>
+    <div class="auth-msg" id="authMsg"></div>
+  </div>
+</div>
+
+<!-- ============ SETUP NOTICE ============ -->
+<div id="setupScreen" class="wrap hidden">
+  <div class="auth-card">
+    <h1>Almost there</h1>
+    <div class="note">This app needs its Supabase keys. Open index.html and replace the two placeholder values at the top of the script with the ones from your Supabase project settings.</div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="appScreen" class="hidden">
+
+  <div class="header">
+    <div class="title">Household Budget</div>
+    <div class="savestate" id="saveState"></div>
+    <button class="gear" id="settingsBtn" aria-label="Settings">⚙</button>
   </div>
 
-  <!-- ============ SETUP NOTICE (shown until Supabase keys are filled in) ============ -->
-  <div id="setupScreen" class="hidden">
-    <div class="auth-card">
-      <h1>Almost there</h1>
-      <div class="note">This app needs its Supabase keys. Open index.html and replace the two placeholder values at the top of the script (SUPABASE_URL and SUPABASE_ANON_KEY) with the ones from your Supabase project settings.</div>
-    </div>
+  <div class="tabs">
+    <button class="on" data-tab="home"><span class="tab-emoji">🏠</span>Home</button>
+    <button data-tab="bills"><span class="tab-emoji">📋</span>Bills</button>
+    <button data-tab="envelopes"><span class="tab-emoji">✉️</span>Envelopes</button>
+    <button data-tab="money"><span class="tab-emoji">💰</span>Money</button>
   </div>
 
-  <!-- ============ APP ============ -->
-  <div id="appScreen" class="hidden">
-    <div class="topbar">
-      <span id="userEmail"></span>
-      <button class="linkbtn" id="signOutBtn">Sign out</button>
-    </div>
+  <div class="wrap">
 
     <div class="monthbar">
-      <button id="prevMonth" aria-label="Previous month">&#8249;</button>
+      <button id="prevMonth" aria-label="Previous month">‹</button>
       <div class="month-title display" id="monthTitle"></div>
-      <button id="nextMonth" aria-label="Next month">&#8250;</button>
-    </div>
-    <div class="savestate" id="saveState" aria-live="polite"></div>
-
-    <div class="plan">
-      <div class="plan-row">
-        <span class="lbl">Take-home income</span>
-        <span id="incomeCell"></span>
-      </div>
-      <div class="plan-row"><span class="lbl">&minus; Bills, debt &amp; savings</span><span class="mono" id="planCommitted"></span></div>
-      <div class="plan-row"><span class="lbl">&minus; Spending envelopes</span><span class="mono" id="planEnvelopes"></span></div>
-      <div class="plan-row total"><span class="lbl">Unassigned</span><span class="mono" id="planUnassigned"></span></div>
-      <div id="planAlert"></div>
+      <button id="nextMonth" aria-label="Next month">›</button>
     </div>
 
-    <div id="paycheckSetup" class="hidden alert good" style="margin-top:10px">
-      <div style="font-weight:600;margin-bottom:6px">First-time setup: when does payday land?</div>
-      <div class="note">Pick any recent Friday you got paid — we'll use that to figure out the every-other-Friday pattern for cash withdrawals.</div>
-      <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
-        <input type="date" id="paycheckAnchor" style="font-family:inherit;font-size:15px;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff">
-        <button class="btn auto" id="savePaycheckBtn">Save</button>
+    <!-- =========== TAB: HOME =========== -->
+    <div id="tab-home" class="tab-panel">
+
+      <div id="threecheckBanner" class="hidden threecheck-banner"></div>
+
+      <div class="card">
+        <div class="card-row">
+          <span class="lbl">Take-home income</span>
+          <span id="incomeCell"></span>
+        </div>
+        <div class="card-row"><span class="lbl">− Bills, debt &amp; savings</span><span class="mono" id="planCommitted"></span></div>
+        <div class="card-row"><span class="lbl">− Spending envelopes</span><span class="mono" id="planEnvelopes"></span></div>
+        <div class="card-row total"><span class="lbl">Unassigned</span><span class="mono" id="planUnassigned"></span></div>
+        <div id="planAlert"></div>
+      </div>
+
+      <div id="paycheckSetup" class="hidden alert good">
+        <div style="font-weight:600;margin-bottom:6px">First-time setup: when does payday land?</div>
+        <div class="note">Pick any recent Friday you got paid — we'll use it to figure out the every-other-Friday cash pull schedule.</div>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
+          <input type="date" id="paycheckAnchor" style="flex:1">
+          <button class="btn auto" id="savePaycheckBtn">Save</button>
+        </div>
+      </div>
+
+      <div class="section-title"><span>Log an expense</span></div>
+      <div class="card">
+        <div class="row" style="margin-bottom:8px">
+          <input type="number" id="expAmount" inputmode="decimal" placeholder="Amount" aria-label="Expense amount">
+          <select id="expCat" aria-label="Category"></select>
+        </div>
+        <input type="text" id="expNote" placeholder="Note (optional) — e.g. Kroger run" aria-label="Note" style="margin-bottom:8px">
+        <button class="btn" id="addExpBtn"></button>
+      </div>
+
+      <div class="section-title"><span>Needs attention</span><span class="hint" id="urgentCount"></span></div>
+      <div id="urgentList"></div>
+    </div>
+
+    <!-- =========== TAB: BILLS =========== -->
+    <div id="tab-bills" class="tab-panel hidden">
+      <div id="commitList"></div>
+
+      <div class="section-title"><span>Add a bill / debt / savings</span></div>
+      <div class="card">
+        <input type="text" id="newCommitName" placeholder="Name (e.g. Electric)" style="margin-bottom:8px">
+        <div class="row" style="margin-bottom:8px">
+          <input type="number" id="newCommitAmt" inputmode="decimal" placeholder="Amount">
+          <input type="number" id="newCommitDue" inputmode="numeric" min="1" max="31" placeholder="Due day">
+        </div>
+        <div class="row" style="margin-bottom:8px">
+          <select id="newCommitKind">
+            <option value="bill">Bill</option><option value="debt">Debt</option><option value="savings">Savings</option><option value="yearly">Yearly bill</option>
+          </select>
+          <select id="newCommitMonth" class="hidden">
+            <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+            <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+            <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+        <button class="btn" id="addCommitBtn">Add</button>
       </div>
     </div>
 
-    <div id="threecheckBanner" class="hidden threecheck-banner"></div>
+    <!-- =========== TAB: ENVELOPES =========== -->
+    <div id="tab-envelopes" class="tab-panel hidden">
+      <div class="payperiod-tabs" id="payperiodTabs"></div>
+      <div id="envList"></div>
 
-    <div class="charts">
-      <div class="chart-box">
-        <div class="chart-title">PLAN</div>
-        <svg class="chart-svg" id="planPie" viewBox="0 0 100 100"></svg>
-        <div class="legend" id="planLegend"></div>
+      <div class="section-title"><span>Add an envelope</span></div>
+      <div class="card">
+        <input type="text" id="newCatName" placeholder="Envelope name (e.g. Coffee)" style="margin-bottom:8px">
+        <div class="row" style="margin-bottom:8px">
+          <select id="newCatPeriod">
+            <option value="monthly">Monthly cap</option><option value="yearly">Yearly cap</option>
+          </select>
+          <button class="btn auto" id="addCatBtn">Add</button>
+        </div>
       </div>
-      <div class="chart-box">
-        <div class="chart-title">ACTUAL</div>
-        <svg class="chart-svg" id="actualPie" viewBox="0 0 100 100"></svg>
-        <div class="legend" id="actualLegend"></div>
+
+      <div class="section-title"><span>This month's expenses</span><span class="hint mono" id="expTotal"></span></div>
+      <div id="expList"></div>
+    </div>
+
+    <!-- =========== TAB: MONEY =========== -->
+    <div id="tab-money" class="tab-panel hidden">
+      <div class="charts">
+        <div class="chart-box">
+          <div class="chart-title">PLAN</div>
+          <svg class="chart-svg" id="planPie" viewBox="0 0 100 100"></svg>
+          <div class="legend" id="planLegend"></div>
+        </div>
+        <div class="chart-box">
+          <div class="chart-title">ACTUAL</div>
+          <svg class="chart-svg" id="actualPie" viewBox="0 0 100 100"></svg>
+          <div class="legend" id="actualLegend"></div>
+        </div>
+      </div>
+
+      <div class="section-title"><span>Buckets</span><span class="hint">where extra money lives</span></div>
+      <div id="bucketList"></div>
+      <div class="card">
+        <input type="text" id="newBucketName" placeholder="New bucket name (e.g. HYSA)" style="margin-bottom:8px">
+        <div class="row">
+          <select id="newBucketKind" style="flex:0 0 auto">
+            <option value="cash">Cash</option>
+            <option value="savings">Savings</option>
+          </select>
+          <button class="btn auto" id="addBucketBtn">Add bucket</button>
+        </div>
       </div>
     </div>
 
-    <div class="chart-box jar" style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left">
-      <div>
-        <div class="jar-label">In the jar</div>
-        <div class="jar-amount mono" id="jarAmount">$0.00</div>
-        <div class="jar-label" id="jarDetail" style="margin-top:2px"></div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <button class="minibtn ghost" id="jarSpendBtn">Withdraw</button>
-        <button class="minibtn ghost" id="jarResetBtn">Reset</button>
-      </div>
+  </div><!-- /.wrap -->
+</div><!-- /#appScreen -->
+
+<!-- ============ SETTINGS DRAWER ============ -->
+<div id="drawer" class="drawer hidden">
+  <div class="drawer-panel">
+    <div class="drawer-handle"></div>
+    <h2>Settings</h2>
+
+    <div class="section-title"><span>Account</span></div>
+    <div class="card">
+      <div class="card-row"><span class="lbl">Signed in as</span><span id="userEmail" class="mono"></span></div>
+      <button class="btn ghost" id="signOutBtn" style="margin-top:6px">Sign out</button>
     </div>
 
-    <div class="payperiod-tabs" id="payperiodTabs"></div>
-
-    <div class="section-title"><span>Bills, debt &amp; savings</span><span class="hint">check off as paid</span></div>
-    <div id="commitList"></div>
-    <div class="newrow">
-      <input type="text" id="newCommitName" placeholder="Name" aria-label="New commitment name">
-      <input type="number" id="newCommitAmt" inputmode="decimal" placeholder="$" aria-label="New commitment amount">
-      <input type="number" id="newCommitDue" inputmode="numeric" min="1" max="31" placeholder="Due day" aria-label="Day of month due (optional)">
-      <select id="newCommitKind" aria-label="Type">
-        <option value="bill">Bill</option><option value="debt">Debt</option><option value="savings">Savings</option><option value="yearly">Yearly bill</option>
-      </select>
-      <select id="newCommitMonth" class="hidden" aria-label="Month the yearly bill is due">
-        <option value="1">January</option><option value="2">February</option><option value="3">March</option>
-        <option value="4">April</option><option value="5">May</option><option value="6">June</option>
-        <option value="7">July</option><option value="8">August</option><option value="9">September</option>
-        <option value="10">October</option><option value="11">November</option><option value="12">December</option>
-      </select>
-      <button class="btn auto" id="addCommitBtn">Add</button>
-    </div>
-
-    <div class="section-title"><span>Log an expense</span></div>
-    <div class="addform">
+    <div class="section-title"><span>Payday schedule</span></div>
+    <div class="card">
+      <div class="note" style="margin-bottom:8px">Anchor date for the every-other-Friday rhythm.</div>
       <div class="row">
-        <input type="number" id="expAmount" inputmode="decimal" placeholder="Amount" aria-label="Expense amount">
-        <select id="expCat" aria-label="Category"></select>
+        <input type="date" id="paycheckAnchorSetting">
+        <button class="btn auto" id="savePaycheckSettingBtn">Save</button>
       </div>
-      <input type="text" id="expNote" placeholder="Note (optional) — e.g. Kroger run" aria-label="Note">
-      <button class="btn" id="addExpBtn"></button>
     </div>
-
-    <div class="section-title"><span>Spending envelopes</span><span class="hint">hard caps — when it's gone, it's gone</span></div>
-    <div id="envList"></div>
-    <div class="newrow">
-      <input type="text" id="newCatName" placeholder="New envelope name" aria-label="New envelope name" style="flex:1 1 100%">
-      <select id="newCatPeriod" aria-label="Envelope period" style="flex:1 1 110px;width:auto">
-        <option value="monthly">Monthly cap</option><option value="yearly">Yearly cap</option>
-      </select>
-      <button class="btn auto" id="addCatBtn">Add</button>
-    </div>
-
-    <div class="section-title"><span>This month's expenses</span><span class="hint mono" id="expTotal"></span></div>
-    <div id="expList"></div>
 
     <div class="section-title"><span>Backup &amp; restore</span></div>
-    <div class="addform">
-      <div class="note">Your budget saves to the cloud automatically. Backup codes are just an extra safety net or a way to move data manually.</div>
+    <div class="card">
+      <div class="note" style="margin-bottom:8px">Cloud-saved already. Backup codes are a manual snapshot, just in case.</div>
       <button class="btn" id="showBackupBtn">Show my backup code</button>
-      <textarea class="ta hidden" id="backupArea" readonly aria-label="Backup code"></textarea>
-      <div class="note">Restore from a backup code:</div>
-      <textarea class="ta" id="restoreArea" placeholder="Paste your backup code here" aria-label="Paste backup code to restore"></textarea>
-      <button class="btn" id="restoreBtn">Restore</button>
-      <div class="note" id="restoreMsg"></div>
+      <textarea class="ta hidden" id="backupArea" readonly style="margin-top:8px"></textarea>
+      <div class="note" style="margin-top:10px">Restore from a code:</div>
+      <textarea class="ta" id="restoreArea" placeholder="Paste backup code"></textarea>
+      <button class="btn" id="restoreBtn" style="margin-top:8px">Restore</button>
+      <div class="note" id="restoreMsg" style="margin-top:6px"></div>
     </div>
-  </div>
 
+    <button class="btn ghost" id="closeDrawerBtn" style="margin-top:10px">Close</button>
+  </div>
 </div>
 
 <script>
@@ -382,18 +498,19 @@ const SUPABASE_URL = "https://mwenahgrmxbzgkghdwki.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13ZW5haGdybXhiemdrZ2hkd2tpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMjgwMzksImV4cCI6MjA5NjgwNDAzOX0.u_p6z7HYUKlbT5FpUrNCCM9Ms8wbKMGmYJDPGP-ZhSc";
 // =====================================================================
 
-const KEY = "household-budget-v1"; // local cache (also used to rescue pre-login data)
+const KEY = "household-budget-v1";
 const KIND_LABEL = { bill: "Bill", debt: "Debt", savings: "Savings", yearly: "Yearly" };
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const PIE_COLORS = ["#3A5E7A", "#B5432F", "#2F7A52", "#C8862F", "#7A5EA8", "#5C6B63", "#8FAF9E", "#D89B6A", "#A0567A", "#4C7B8C"];
 const monthlyOf = c => c.kind === "yearly" ? c.amount / 12 : c.amount;
 
 let state = {
   income: 0,
   commitments: [
-    { id: "rent", name: "Mortgage / Rent", amount: 0, kind: "bill", dueDay: null, dueMonth: null },
-    { id: "utils", name: "Utilities", amount: 0, kind: "bill", dueDay: null, dueMonth: null },
-    { id: "cc", name: "Credit card paydown", amount: 0, kind: "debt", dueDay: null, dueMonth: null },
-    { id: "save", name: "Savings", amount: 0, kind: "savings", dueDay: null, dueMonth: null },
+    { id: "rent", name: "Mortgage / Rent", amount: 0, kind: "bill", dueDay: null, dueMonth: null, defaultBucket: null },
+    { id: "utils", name: "Utilities", amount: 0, kind: "bill", dueDay: null, dueMonth: null, defaultBucket: null },
+    { id: "cc", name: "Credit card paydown", amount: 0, kind: "debt", dueDay: null, dueMonth: null, defaultBucket: null },
+    { id: "save", name: "Savings", amount: 0, kind: "savings", dueDay: null, dueMonth: null, defaultBucket: null },
   ],
   paid: {},
   categories: [
@@ -404,18 +521,21 @@ let state = {
     { id: "fun", name: "Fun Money", budget: 150, period: "monthly", cash: false },
   ],
   expenses: [],
-  paycheckAnchor: null,   // ISO date string of a known paycheck Friday
-  cashLog: {},            // { "2026-06-12_groc": { pulled: 150, leftover: null } }
-  jar: 0,                 // running savings jar total
-  jarLog: [],             // [{ date, amount, note }]
+  paycheckAnchor: null,
+  cashLog: {},
+  jar: 0,
+  jarLog: [],
+  buckets: null,
+  payHistory: {},
 };
-let viewedPeriodStart = null;   // ISO date of the Friday starting the period being viewed
 let monthKey = new Date().toISOString().slice(0, 7);
 let editing = null;
 let confirmRm = null;
+let viewedPeriodStart = null;
+let activeTab = "home";
 let sb = null;
 let currentUser = null;
-let dirty = false;          // unsynced local changes exist
+let dirty = false;
 let saveTimer = null;
 let saveInFlight = false;
 
@@ -451,18 +571,27 @@ function applyData(data) {
   if (data.cashLog && typeof data.cashLog === "object") { state.cashLog = data.cashLog; any = true; }
   if (typeof data.jar === "number") { state.jar = data.jar; any = true; }
   if (Array.isArray(data.jarLog)) { state.jarLog = data.jarLog; any = true; }
+  if (Array.isArray(data.buckets)) { state.buckets = data.buckets; any = true; }
+  if (data.payHistory && typeof data.payHistory === "object") { state.payHistory = data.payHistory; any = true; }
   return any;
 }
+function ensureBuckets() {
+  if (!state.buckets || state.buckets.length === 0) {
+    state.buckets = [{ id: "jar", name: "Cash Jar", balance: state.jar || 0, isDefault: true, kind: "cash" }];
+  }
+  const def = (state.buckets.find(b => b.isDefault) || state.buckets[0]).id;
+  for (const c of state.commitments) {
+    if (!c.defaultBucket) c.defaultBucket = def;
+  }
+}
 
-// ---------- pay-period helpers (every other Friday) ----------
+// ---------- pay-period helpers ----------
 const dateToISO = d => d.toISOString().slice(0, 10);
 const isoToDate = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
-// returns ISO date of the period-start (a Friday) that contains the given date
 function periodStartFor(date) {
   if (!state.paycheckAnchor) return null;
   const anchor = isoToDate(state.paycheckAnchor);
   const diffDays = Math.floor((date - anchor) / 86400000);
-  // each period is 14 days; floor to multiple of 14
   const periodsFromAnchor = Math.floor(diffDays / 14);
   const start = new Date(anchor);
   start.setDate(anchor.getDate() + periodsFromAnchor * 14);
@@ -473,18 +602,12 @@ function periodEnd(startISO) {
   d.setDate(d.getDate() + 13);
   return d;
 }
-function shiftPeriod(startISO, n) {
-  const d = isoToDate(startISO);
-  d.setDate(d.getDate() + n * 14);
-  return dateToISO(d);
-}
 function periodLabel(startISO) {
   const start = isoToDate(startISO);
   const end = periodEnd(startISO);
   const fmt = d => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  return fmt(start) + " – " + fmt(end);
+  return fmt(start) + "–" + fmt(end);
 }
-// count paychecks in a calendar month (3 = bonus month)
 function paychecksInMonth(monthKey) {
   if (!state.paycheckAnchor) return 2;
   const [y, m] = monthKey.split("-").map(Number);
@@ -493,7 +616,6 @@ function paychecksInMonth(monthKey) {
   let count = 0;
   let p = periodStartFor(monthStart);
   if (!p) return 2;
-  // p may be before monthStart; iterate forward
   let cursor = isoToDate(p);
   while (cursor <= monthEnd) {
     if (cursor >= monthStart && cursor <= monthEnd) count++;
@@ -501,54 +623,15 @@ function paychecksInMonth(monthKey) {
   }
   return count;
 }
-// monthly cap halved per pay period (your rule: half of each envelope)
 function perPeriodCap(cat) {
   const monthly = cat.period === "yearly" ? cat.budget / 12 : cat.budget;
   return monthly / 2;
 }
 const cashKey = (startISO, catId) => startISO + "_" + catId;
 
-// ---------- pie chart ----------
-const PIE_COLORS = ["#3A5E7A", "#B5432F", "#2F7A52", "#C8862F", "#7A5EA8", "#5C6B63", "#8FAF9E", "#D89B6A", "#A0567A", "#4C7B8C"];
-function renderPie(svgEl, legendEl, slices) {
-  // slices: [{ label, value, color? }]
-  const total = slices.reduce((s, x) => s + x.value, 0);
-  if (total <= 0) {
-    svgEl.innerHTML = '<circle cx="50" cy="50" r="38" fill="none" stroke="#D5DCD4" stroke-width="2" stroke-dasharray="2 2"/>';
-    legendEl.innerHTML = '<div class="legend-row" style="color:var(--ink-soft);justify-content:center">No data yet</div>';
-    return;
-  }
-  let angle = -Math.PI / 2; // start at top
-  const paths = [];
-  slices.forEach((s, i) => {
-    if (s.value <= 0) return;
-    const frac = s.value / total;
-    const next = angle + frac * 2 * Math.PI;
-    const large = frac > 0.5 ? 1 : 0;
-    const x1 = 50 + 38 * Math.cos(angle), y1 = 50 + 38 * Math.sin(angle);
-    const x2 = 50 + 38 * Math.cos(next), y2 = 50 + 38 * Math.sin(next);
-    const color = s.color || PIE_COLORS[i % PIE_COLORS.length];
-    if (frac >= 0.999) {
-      paths.push('<circle cx="50" cy="50" r="38" fill="' + color + '"/>');
-    } else {
-      paths.push('<path d="M50,50 L' + x1.toFixed(2) + ',' + y1.toFixed(2) + ' A38,38 0 ' + large + ',1 ' + x2.toFixed(2) + ',' + y2.toFixed(2) + ' Z" fill="' + color + '"/>');
-    }
-    angle = next;
-  });
-  svgEl.innerHTML = paths.join("");
-  legendEl.innerHTML = slices.filter(s => s.value > 0).map((s, i) =>
-    '<div class="legend-row"><span class="legend-sw" style="background:' + (s.color || PIE_COLORS[i % PIE_COLORS.length]) + '"></span>' +
-    '<span class="legend-name">' + esc(s.label) + '</span>' +
-    '<span class="legend-val">' + money(s.value) + '</span></div>'
-  ).join("");
-}
-
-// ---------- persistence: local cache + cloud ----------
-function persistLocal() {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* cache only */ }
-}
+// ---------- persistence ----------
+function persistLocal() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 function setSaveMsg(html) { $("saveState").innerHTML = html; }
-
 function scheduleCloudSave() {
   dirty = true;
   setSaveMsg("Saving&hellip;");
@@ -560,15 +643,13 @@ async function doCloudSave() {
   saveInFlight = true;
   try {
     const { error } = await sb.from("budgets").upsert({
-      user_id: currentUser.id,
-      data: state,
-      updated_at: new Date().toISOString(),
+      user_id: currentUser.id, data: state, updated_at: new Date().toISOString(),
     });
     if (error) throw error;
     dirty = false;
-    setSaveMsg('<span class="ok">&#10003; Saved to cloud</span>');
+    setSaveMsg('<span class="ok">&#10003; Saved</span>');
   } catch (e) {
-    setSaveMsg('<span class="bad">&#9888; Cloud save failed (' + esc(e.message || e) + ') &mdash; will retry on next change</span>');
+    setSaveMsg('<span class="bad">&#9888; ' + esc(e.message || e) + '</span>');
   } finally {
     saveInFlight = false;
   }
@@ -579,10 +660,9 @@ async function fetchCloud() {
   if (error) throw error;
   return data ? data.data : null;
 }
-
 function commit() { persistLocal(); scheduleCloudSave(); render(); }
 
-// ---------- render ----------
+// ---------- editors ----------
 function amountEditorHTML(id, val, label) {
   return '<span class="inline-edit">' +
     '<input type="number" inputmode="decimal" id="editAmount" aria-label="' + esc(label) + '" value="' + (val > 0 ? val : "") + '">' +
@@ -594,6 +674,9 @@ function commitEditorHTML(c) {
   const monthOpts = MONTHS.map((m, i) =>
     '<option value="' + (i + 1) + '"' + (c.dueMonth === i + 1 ? " selected" : "") + '>' + m + '</option>'
   ).join("");
+  const bucketOpts = (state.buckets || []).map(b =>
+    '<option value="' + esc(b.id) + '"' + (c.defaultBucket === b.id ? " selected" : "") + '>' + esc(b.name) + '</option>'
+  ).join("");
   return '<div class="edit-stack">' +
     '<label>Name</label><input type="text" id="editName" value="' + esc(c.name) + '">' +
     '<label>' + (isYearly ? "Amount per year" : "Monthly amount") + '</label><input type="number" inputmode="decimal" id="editAmount" value="' + (c.amount > 0 ? c.amount : "") + '">' +
@@ -601,6 +684,7 @@ function commitEditorHTML(c) {
       ? '<label>Month it\'s due</label><select id="editMonth">' + monthOpts + '</select>' +
         '<label>Day of that month (blank for none)</label><input type="number" inputmode="numeric" min="1" max="31" id="editDue" value="' + (c.dueDay || "") + '">'
       : '<label>Day of month it\'s due (blank for none)</label><input type="number" inputmode="numeric" min="1" max="31" id="editDue" value="' + (c.dueDay || "") + '">') +
+    '<label>If paid for less, send difference to</label><select id="editBucket">' + bucketOpts + '</select>' +
     '<div class="btns"><button class="minibtn" data-action="save-edit" data-id="' + esc(c.id) + '">Save</button>' +
     '<button class="minibtn ghost" data-action="cancel-edit">Cancel</button></div></div>';
 }
@@ -625,7 +709,7 @@ function dueInfoHTML(c, isPaid) {
     let cls = "", text = "Due in " + monthName;
     if (viewMonth === c.dueMonth && !isPaid) {
       if (monthKey === nowKey && c.dueDay && today.getDate() > c.dueDay) {
-        cls = " over"; text = "Overdue &mdash; was due " + monthName + " " + ordinal(c.dueDay);
+        cls = " over"; text = "Overdue — was due " + monthName + " " + ordinal(c.dueDay);
       } else {
         cls = " soon"; text = "Due this month" + (c.dueDay ? " (the " + ordinal(c.dueDay) + ")" : "");
       }
@@ -636,17 +720,66 @@ function dueInfoHTML(c, isPaid) {
   let cls = "", text = "Due the " + ordinal(c.dueDay);
   if (monthKey === nowKey && !isPaid) {
     const daysLeft = c.dueDay - today.getDate();
-    if (daysLeft < 0) { cls = " over"; text = "Overdue &mdash; was due the " + ordinal(c.dueDay); }
+    if (daysLeft < 0) { cls = " over"; text = "Overdue — was due the " + ordinal(c.dueDay); }
     else if (daysLeft === 0) { cls = " over"; text = "Due today (the " + ordinal(c.dueDay) + ")"; }
     else if (daysLeft <= 5) { cls = " soon"; text = "Due in " + daysLeft + " day" + (daysLeft === 1 ? "" : "s") + " (the " + ordinal(c.dueDay) + ")"; }
   }
   return '<div class="due' + cls + '">' + text + '</div>';
 }
+function urgencyClass(c, isPaid) {
+  if (isPaid) return null;
+  const today = new Date();
+  const nowKey = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0");
+  if (monthKey !== nowKey) return null;
+  if (c.kind === "yearly") {
+    if (!c.dueMonth || parseInt(monthKey.split("-")[1], 10) !== c.dueMonth) return null;
+    if (c.dueDay && today.getDate() > c.dueDay) return "over";
+    return "soon";
+  }
+  if (!c.dueDay) return null;
+  const d = c.dueDay - today.getDate();
+  if (d < 0) return "over";
+  if (d <= 5) return "soon";
+  return null;
+}
 
+// ---------- pie chart ----------
+function renderPie(svgEl, legendEl, slices) {
+  const total = slices.reduce((s, x) => s + x.value, 0);
+  if (total <= 0) {
+    svgEl.innerHTML = '<circle cx="50" cy="50" r="38" fill="none" stroke="#D5DCD4" stroke-width="2" stroke-dasharray="2 2"/>';
+    legendEl.innerHTML = '<div class="legend-row" style="color:var(--ink-soft);justify-content:center">No data yet</div>';
+    return;
+  }
+  let angle = -Math.PI / 2;
+  const paths = [];
+  slices.forEach((s, i) => {
+    if (s.value <= 0) return;
+    const frac = s.value / total;
+    const next = angle + frac * 2 * Math.PI;
+    const large = frac > 0.5 ? 1 : 0;
+    const x1 = 50 + 38 * Math.cos(angle), y1 = 50 + 38 * Math.sin(angle);
+    const x2 = 50 + 38 * Math.cos(next), y2 = 50 + 38 * Math.sin(next);
+    const color = s.color || PIE_COLORS[i % PIE_COLORS.length];
+    if (frac >= 0.999) paths.push('<circle cx="50" cy="50" r="38" fill="' + color + '"/>');
+    else paths.push('<path d="M50,50 L' + x1.toFixed(2) + ',' + y1.toFixed(2) + ' A38,38 0 ' + large + ',1 ' + x2.toFixed(2) + ',' + y2.toFixed(2) + ' Z" fill="' + color + '"/>');
+    angle = next;
+  });
+  svgEl.innerHTML = paths.join("");
+  legendEl.innerHTML = slices.filter(s => s.value > 0).map((s, i) =>
+    '<div class="legend-row"><span class="legend-sw" style="background:' + (s.color || PIE_COLORS[i % PIE_COLORS.length]) + '"></span>' +
+    '<span class="legend-name">' + esc(s.label) + '</span>' +
+    '<span class="legend-val">' + money(s.value) + '</span></div>'
+  ).join("");
+}
+
+// ---------- render ----------
 function render() {
   $("monthTitle").textContent = monthLabel(monthKey);
   $("addExpBtn").textContent = "Add to " + monthLabel(monthKey);
+  $("paycheckSetup").classList.toggle("hidden", !!state.paycheckAnchor);
 
+  // computed totals
   const monthExpenses = state.expenses
     .filter(e => e.date.slice(0, 7) === monthKey)
     .sort((a, b) => b.date.localeCompare(a.date));
@@ -657,13 +790,19 @@ function render() {
   for (const e of state.expenses) {
     if (e.date.slice(0, 4) === viewYear) spentByCatYear[e.catId] = (spentByCatYear[e.catId] || 0) + e.amount;
   }
-
   const committedTotal = state.commitments.reduce((s, c) => s + monthlyOf(c), 0);
   const envelopeTotal = state.categories.reduce((s, c) => s + (c.period === "yearly" ? c.budget / 12 : c.budget), 0);
   const unallocated = state.income - committedTotal - envelopeTotal;
   const monthPaid = state.paid[monthKey] || {};
+  const checks = paychecksInMonth(monthKey);
 
-  // plan
+  // expense category select (preserve selection)
+  const sel = $("expCat");
+  const prev = sel.value;
+  sel.innerHTML = state.categories.map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>').join("");
+  if (state.categories.some(c => c.id === prev)) sel.value = prev;
+
+  // ----- HOME TAB -----
   if (editing === "income") {
     $("incomeCell").innerHTML = amountEditorHTML("income", state.income, "Monthly take-home income");
   } else {
@@ -680,10 +819,31 @@ function render() {
   if (state.income > 0 && unallocated < 0)
     alertHTML = '<div class="alert bad">Your plan spends ' + money(Math.abs(unallocated)) + ' more than you bring in. Trim envelopes or commitments until this hits zero.</div>';
   else if (state.income > 0 && unallocated > 0)
-    alertHTML = '<div class="alert good">' + money(unallocated) + " isn't assigned a job yet. Put it toward debt or savings before the month starts &mdash; unassigned money gets spent.</div>";
+    alertHTML = '<div class="alert good">' + money(unallocated) + " isn't assigned a job yet. Send it to debt or savings before the month starts.</div>";
   $("planAlert").innerHTML = alertHTML;
 
-  // commitments (sorted: monthly by due day, then yearly by due month)
+  if (state.paycheckAnchor && checks >= 3) {
+    $("threecheckBanner").classList.remove("hidden");
+    $("threecheckBanner").innerHTML = '🎉 <strong>Bonus paycheck month!</strong> ' + monthLabel(monthKey) + ' has ' + checks + ' paychecks. The extra one isn\'t budgeted — send it to debt or HYSA.';
+  } else {
+    $("threecheckBanner").classList.add("hidden");
+  }
+
+  // Urgent / needs attention
+  const urgent = state.commitments.map(c => ({ c, urgency: urgencyClass(c, !!monthPaid[c.id]) }))
+    .filter(x => x.urgency);
+  $("urgentCount").textContent = urgent.length === 0 ? "all caught up" : urgent.length + " bill" + (urgent.length === 1 ? "" : "s");
+  $("urgentList").innerHTML = urgent.length === 0
+    ? '<div class="empty">Nothing due soon. Nice.</div>'
+    : urgent.map(({ c, urgency }) =>
+        '<div class="urgent-bill ' + urgency + '">' +
+        '<div><div style="font-weight:600">' + esc(c.name) + '</div>' +
+        dueInfoHTML(c, false).replace('<div class="due', '<div style="margin-top:0" class="due') + '</div>' +
+        '<button class="minibtn" data-action="toggle-paid-quick" data-id="' + esc(c.id) + '">Mark paid</button>' +
+        '</div>'
+      ).join("");
+
+  // ----- BILLS TAB -----
   const sortKey = c => c.kind === "yearly" ? 40 + (c.dueMonth || 13) : (c.dueDay || 39);
   const sortedCommitments = state.commitments.slice().sort((a, b) => sortKey(a) - sortKey(b));
   const viewMonthNum = parseInt(monthKey.split("-")[1], 10);
@@ -697,42 +857,41 @@ function render() {
       '<button class="minibtn danger" data-action="remove" data-id="' + esc(c.id) + '">Remove</button>' +
       '<button class="minibtn ghost" data-action="cancel-remove">Keep</button></span>';
     else right = '<div class="amt mono">' + money(c.amount) + (isYearly ? '<span style="font-weight:400;font-size:12px;color:var(--ink-soft)">/yr</span>' : '') + '</div>' +
-      '<button class="del" data-action="edit" data-id="' + esc(c.id) + '" aria-label="Edit ' + esc(c.name) + '">&#9998;</button>' +
-      '<button class="del" data-action="confirm-remove" data-id="' + esc(c.id) + '" aria-label="Remove ' + esc(c.name) + '">&#10005;</button>';
+      '<button class="del" data-action="edit" data-id="' + esc(c.id) + '" aria-label="Edit ' + esc(c.name) + '">✎</button>' +
+      '<button class="del" data-action="confirm-remove" data-id="' + esc(c.id) + '" aria-label="Remove ' + esc(c.name) + '">✕</button>';
     const checkHTML = checkRelevant
-      ? '<button class="check' + (isPaid ? " on" : "") + '" data-action="toggle-paid" data-id="' + esc(c.id) + '" aria-label="Mark ' + esc(c.name) + (isPaid ? " unpaid" : " paid") + '">' + (isPaid ? "&#10003;" : "") + '</button>'
-      : '<span style="width:26px;flex-shrink:0"></span>';
-    const setAside = isYearly
-      ? '<div class="due">Setting aside ' + money(c.amount / 12) + '/mo</div>'
-      : '';
+      ? '<button class="check' + (isPaid ? " on" : "") + '" data-action="toggle-paid" data-id="' + esc(c.id) + '" aria-label="Mark ' + esc(c.name) + (isPaid ? " unpaid" : " paid") + '">' + (isPaid ? "✓" : "") + '</button>'
+      : '<span style="width:28px;flex-shrink:0"></span>';
+    const setAside = isYearly ? '<div class="due">Setting aside ' + money(c.amount / 12) + '/mo</div>' : '';
+    const hist = (state.payHistory[c.id] || []).slice(-6);
+    let histHTML = '';
+    if (hist.length > 0) {
+      const avg = hist.reduce((s, h) => s + h.amount, 0) / hist.length;
+      const budgetForCompare = isYearly ? c.amount : c.amount;
+      const diff = avg - budgetForCompare;
+      const diffColor = diff > 1 ? "var(--red)" : diff < -1 ? "var(--green)" : "var(--ink-soft)";
+      const diffText = Math.abs(diff) < 1 ? "matches budget" :
+        diff < 0 ? "avg " + money(avg) + " (under by " + money(Math.abs(diff)) + ")" :
+        "avg " + money(avg) + " (over by " + money(diff) + ")";
+      const hLabels = hist.map(h => '<span class="h-item">' + money(h.amount) + '</span>').join("");
+      histHTML = '<div class="due" style="color:' + diffColor + '">' + diffText + '</div>' +
+        '<div class="history-strip">' + hLabels + '</div>';
+    }
     return '<div class="commit' + (isPaid && checkRelevant ? " paid" : "") + '">' +
       checkHTML +
-      '<div class="body"><div class="name">' + esc(c.name) + '</div><div class="tag ' + c.kind + '">' + KIND_LABEL[c.kind] + '</div>' + setAside + dueInfoHTML(c, isPaid) + '</div>' + right + '</div>';
+      '<div class="body"><div class="name">' + esc(c.name) + '</div><div class="tag ' + c.kind + '">' + KIND_LABEL[c.kind] + '</div>' + setAside + dueInfoHTML(c, isPaid) + histHTML + '</div>' + right + '</div>';
   }).join("");
 
-  // paycheck setup banner (shown until user sets anchor)
-  $("paycheckSetup").classList.toggle("hidden", !!state.paycheckAnchor);
-
-  // 3-paycheck month banner
-  const checks = paychecksInMonth(monthKey);
-  if (state.paycheckAnchor && checks >= 3) {
-    $("threecheckBanner").classList.remove("hidden");
-    $("threecheckBanner").innerHTML = '&#127881; <strong>Bonus paycheck month!</strong> ' + monthLabel(monthKey) + ' has ' + checks + ' paychecks. The extra one isn\'t budgeted &mdash; consider sending it straight to debt paydown or savings.';
-  } else {
-    $("threecheckBanner").classList.add("hidden");
-  }
-
-  // Pay-period tabs (initialize viewed period if needed)
+  // ----- ENVELOPES TAB -----
+  // pay-period tabs
   const tabsEl = $("payperiodTabs");
   if (state.paycheckAnchor) {
-    // determine which periods overlap this viewed month
     const [y, m] = monthKey.split("-").map(Number);
     const monthStart = new Date(y, m-1, 1);
     const monthEnd = new Date(y, m, 0);
     const periods = [];
     let cursorISO = periodStartFor(monthStart);
     let cursor = isoToDate(cursorISO);
-    // back up if first period started in prior month and still overlaps
     if (periodEnd(cursorISO) < monthStart) {
       cursor.setDate(cursor.getDate() + 14);
       cursorISO = dateToISO(cursor);
@@ -743,12 +902,11 @@ function render() {
     }
     if (periods.length === 0) periods.push(cursorISO);
     if (!viewedPeriodStart || !periods.includes(viewedPeriodStart)) {
-      // default: period containing today, else first period of month
       const todayPeriod = periodStartFor(new Date());
       viewedPeriodStart = periods.includes(todayPeriod) ? todayPeriod : periods[0];
     }
     tabsEl.innerHTML = periods.map((p, i) =>
-      '<button class="' + (p === viewedPeriodStart ? "on" : "") + '" data-action="set-period" data-id="' + p + '">Period ' + (i+1) + ': ' + periodLabel(p) + '</button>'
+      '<button class="' + (p === viewedPeriodStart ? "on" : "") + '" data-action="set-period" data-id="' + p + '">Period ' + (i+1) + '<br>' + periodLabel(p) + '</button>'
     ).join("");
     tabsEl.classList.remove("hidden");
   } else {
@@ -756,51 +914,6 @@ function render() {
     viewedPeriodStart = null;
   }
 
-  // expense category select (preserve selection)
-  const sel = $("expCat");
-  const prev = sel.value;
-  sel.innerHTML = state.categories.map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>').join("");
-  if (state.categories.some(c => c.id === prev)) sel.value = prev;
-
-  // ----- pie charts -----
-  // Plan slices: bills, debt, savings, yearly set-asides, each envelope category, unassigned
-  const planSlices = [];
-  const bills = state.commitments.filter(c => c.kind === "bill").reduce((s, c) => s + c.amount, 0);
-  const debts = state.commitments.filter(c => c.kind === "debt").reduce((s, c) => s + c.amount, 0);
-  const savings = state.commitments.filter(c => c.kind === "savings").reduce((s, c) => s + c.amount, 0);
-  const yearly = state.commitments.filter(c => c.kind === "yearly").reduce((s, c) => s + c.amount / 12, 0);
-  planSlices.push({ label: "Bills", value: bills, color: "#3A5E7A" });
-  planSlices.push({ label: "Debt", value: debts, color: "#B5432F" });
-  planSlices.push({ label: "Savings", value: savings, color: "#2F7A52" });
-  if (yearly > 0) planSlices.push({ label: "Yearly set-aside", value: yearly, color: "#7A5EA8" });
-  const envSlice = state.categories.reduce((s, c) => s + (c.period === "yearly" ? c.budget / 12 : c.budget), 0);
-  planSlices.push({ label: "Envelopes", value: envSlice, color: "#C8862F" });
-  if (unallocated > 0) planSlices.push({ label: "Unassigned", value: unallocated, color: "#5C6B63" });
-  renderPie($("planPie"), $("planLegend"), planSlices);
-
-  // Actual slices: spent per envelope category + bills/debt/savings paid this month
-  const actualSlices = state.categories.map((c, i) => ({
-    label: c.name,
-    value: (spentByCat[c.id] || 0),
-    color: PIE_COLORS[i % PIE_COLORS.length],
-  })).filter(s => s.value > 0);
-  // paid commitments contribute their amount
-  const paidCommitTotals = { bill: 0, debt: 0, savings: 0, yearly: 0 };
-  for (const c of state.commitments) {
-    if (monthPaid[c.id]) paidCommitTotals[c.kind] += (c.kind === "yearly" ? c.amount : c.amount);
-  }
-  if (paidCommitTotals.bill > 0) actualSlices.push({ label: "Bills paid", value: paidCommitTotals.bill, color: "#3A5E7A" });
-  if (paidCommitTotals.debt > 0) actualSlices.push({ label: "Debt paid", value: paidCommitTotals.debt, color: "#B5432F" });
-  if (paidCommitTotals.savings > 0) actualSlices.push({ label: "Savings", value: paidCommitTotals.savings, color: "#2F7A52" });
-  if (paidCommitTotals.yearly > 0) actualSlices.push({ label: "Yearly paid", value: paidCommitTotals.yearly, color: "#7A5EA8" });
-  renderPie($("actualPie"), $("actualLegend"), actualSlices);
-
-  // ----- jar -----
-  $("jarAmount").textContent = money(state.jar);
-  $("jarDetail").textContent = state.jarLog.length === 0 ? "Leftover cash from envelopes ends up here." :
-    "Last activity: " + new Date(state.jarLog[state.jarLog.length-1].date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
-  // envelopes (cash-mode aware)
   $("envList").innerHTML = state.categories.map(cat => {
     const isYearly = cat.period === "yearly";
     const isCash = !!cat.cash && !isYearly && !!viewedPeriodStart;
@@ -808,19 +921,18 @@ function render() {
     if (editing === cat.id) actions = catEditorHTML(cat);
     else if (confirmRm === cat.id) {
       const hasExp = state.expenses.some(e => e.catId === cat.id);
-      actions = '<button class="minibtn danger" data-action="remove" data-id="' + esc(cat.id) + '">Remove envelope' + (hasExp ? " &amp; its expenses" : "") + '</button>' +
+      actions = '<button class="minibtn danger" data-action="remove" data-id="' + esc(cat.id) + '">Remove' + (hasExp ? " &amp; expenses" : "") + '</button>' +
         '<button class="minibtn ghost" data-action="cancel-remove">Keep</button>';
     } else {
       const cashToggle = isYearly ? "" :
         '<button class="cash-toggle' + (cat.cash ? " on" : "") + '" data-action="toggle-cash" data-id="' + esc(cat.id) + '">' + (cat.cash ? "💵 Cash" : "💳 Card") + '</button>';
-      actions = '<button class="linkbtn" data-action="edit" data-id="' + esc(cat.id) + '">Edit cap</button>' +
+      actions = '<button class="linkbtn" data-action="edit" data-id="' + esc(cat.id) + '">Edit</button>' +
         '<button class="linkbtn" data-action="confirm-remove" data-id="' + esc(cat.id) + '">Remove</button>' +
         cashToggle;
     }
 
     let body;
     if (isCash) {
-      // cash mode: pay-period scoped
       const ck = cashKey(viewedPeriodStart, cat.id);
       const log = state.cashLog[ck] || {};
       const suggested = perPeriodCap(cat);
@@ -830,12 +942,11 @@ function render() {
       const pct = (pulled && spent !== null) ? Math.min(spent / pulled, 1) : 0;
       const over = pulled !== null && leftover !== null && leftover < 0;
       const tone = over ? "over" : (pulled && spent !== null && spent / pulled >= 0.8) ? "warn" : "ok";
-
       let cashBody = '';
       if (pulled === null) {
         cashBody = '<div class="cash-status"><div class="item"><span class="lbl">Suggested pull</span><span class="val">' + money(suggested) + '</span></div></div>' +
           '<div class="cash-actions">' +
-          '<button class="minibtn" data-action="pull-cash" data-id="' + esc(cat.id) + '" data-period="' + viewedPeriodStart + '">I pulled ' + money(suggested) + '</button>' +
+          '<button class="minibtn" data-action="pull-cash" data-id="' + esc(cat.id) + '" data-period="' + viewedPeriodStart + '">Pulled ' + money(suggested) + '</button>' +
           '<button class="minibtn ghost" data-action="pull-cash-custom" data-id="' + esc(cat.id) + '" data-period="' + viewedPeriodStart + '">Other amount</button>' +
           '</div>';
       } else if (leftover === null) {
@@ -843,25 +954,23 @@ function render() {
           '<div class="item"><span class="lbl">Pulled</span><span class="val">' + money(pulled) + '</span></div>' +
           '</div><div class="cash-actions">' +
           '<button class="minibtn" data-action="close-period" data-id="' + esc(cat.id) + '" data-period="' + viewedPeriodStart + '">End of period: count what\'s left</button>' +
-          '<button class="minibtn ghost" data-action="reset-cash" data-id="' + esc(cat.id) + '" data-period="' + viewedPeriodStart + '">Undo pull</button>' +
+          '<button class="minibtn ghost" data-action="reset-cash" data-id="' + esc(cat.id) + '" data-period="' + viewedPeriodStart + '">Undo</button>' +
           '</div>';
       } else {
         cashBody = '<div class="cash-status">' +
           '<div class="item"><span class="lbl">Pulled</span><span class="val">' + money(pulled) + '</span></div>' +
           '<div class="item"><span class="lbl">Spent</span><span class="val">' + money(spent) + '</span></div>' +
-          '<div class="item"><span class="lbl">To jar</span><span class="val" style="color:var(--amber)">' + money(Math.max(leftover, 0)) + '</span></div>' +
+          '<div class="item"><span class="lbl">To bucket</span><span class="val" style="color:var(--amber)">' + money(Math.max(leftover, 0)) + '</span></div>' +
           '</div><div class="cash-actions">' +
           '<button class="minibtn ghost" data-action="reset-cash" data-id="' + esc(cat.id) + '" data-period="' + viewedPeriodStart + '">Reopen</button>' +
           '</div>';
       }
-      body =
-        '<div class="fill ' + (tone !== "ok" ? tone : "") + '" style="height:' + (pct * 100) + '%"></div>' +
+      body = '<div class="fill ' + (tone !== "ok" ? tone : "") + '" style="height:' + (pct * 100) + '%"></div>' +
         '<div class="env-content"><div class="env-top">' +
-        '<div class="env-name display">' + esc(cat.name) + ' <span style="font-size:11px;font-weight:400;color:var(--amber);font-family:\'IBM Plex Sans\',sans-serif">cash · this period</span></div>' +
+        '<div class="env-name display">' + esc(cat.name) + ' <span class="badge cash">cash · this period</span></div>' +
         '</div>' + cashBody +
         '<div class="env-actions">' + actions + '</div></div>';
     } else {
-      // card mode (existing behavior)
       const spent = (isYearly ? spentByCatYear[cat.id] : spentByCat[cat.id]) || 0;
       const pct = cat.budget > 0 ? Math.min(spent / cat.budget, 1) : spent > 0 ? 1 : 0;
       const over = cat.budget > 0 && spent > cat.budget;
@@ -870,37 +979,87 @@ function render() {
       const tone = over ? "over" : warn ? "warn" : "ok";
       const subLeft = isYearly ? money(spent) + ' spent in ' + viewYear : money(spent) + ' spent';
       const subRight = isYearly
-        ? 'cap ' + money(cat.budget) + '/yr &middot; ' + money(cat.budget / 12) + '/mo set aside'
+        ? 'cap ' + money(cat.budget) + '/yr · ' + money(cat.budget / 12) + '/mo set aside'
         : 'cap ' + money(cat.budget);
-      body =
-        '<div class="fill ' + (tone !== "ok" ? tone : "") + '" style="height:' + (pct * 100) + '%"></div>' +
+      body = '<div class="fill ' + (tone !== "ok" ? tone : "") + '" style="height:' + (pct * 100) + '%"></div>' +
         '<div class="env-content"><div class="env-top">' +
-        '<div class="env-name display">' + esc(cat.name) + (isYearly ? ' <span style="font-size:12px;font-weight:400;color:var(--ink-soft);font-family:\'IBM Plex Sans\',sans-serif">yearly</span>' : '') + '</div>' +
+        '<div class="env-name display">' + esc(cat.name) + (isYearly ? ' <span class="badge">yearly</span>' : '') + '</div>' +
         '<div class="env-remaining mono ' + tone + '">' + (over ? money(Math.abs(remaining)) + " over" : money(remaining) + " left" + (isYearly ? " this year" : "")) + '</div></div>' +
         '<div class="env-sub"><span class="mono">' + subLeft + '</span><span class="mono">' + subRight + '</span></div>' +
         '<div class="env-actions">' + actions + '</div></div>';
     }
-
     return '<div class="envelope">' + body + '</div>';
   }).join("");
 
-  // expenses
   const totalSpent = monthExpenses.reduce((s, e) => s + e.amount, 0);
   $("expTotal").textContent = money(totalSpent) + " total";
   $("expList").innerHTML = monthExpenses.length === 0
-    ? '<div class="empty">Nothing logged for ' + monthLabel(monthKey) + ' yet. Add your first expense above.</div>'
+    ? '<div class="empty">Nothing logged yet.</div>'
     : monthExpenses.map(e => {
         const cat = state.categories.find(c => c.id === e.catId);
         const d = new Date(e.date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        return '<div class="expense"><div><div>' + esc(cat ? cat.name : "—") + (e.note ? " &mdash; " + esc(e.note) : "") + '</div>' +
+        return '<div class="expense"><div><div>' + esc(cat ? cat.name : "—") + (e.note ? " — " + esc(e.note) : "") + '</div>' +
           '<div class="meta">' + d + '</div></div>' +
           '<div style="display:flex;align-items:center;gap:6px"><div class="amt mono">' + money(e.amount) + '</div>' +
-          '<button class="del" data-action="del-expense" data-id="' + esc(e.id) + '" aria-label="Delete expense">&#10005;</button></div></div>';
+          '<button class="del" data-action="del-expense" data-id="' + esc(e.id) + '" aria-label="Delete">✕</button></div></div>';
       }).join("");
 
+  // ----- MONEY TAB -----
+  const planSlices = [];
+  const bills = state.commitments.filter(c => c.kind === "bill").reduce((s, c) => s + c.amount, 0);
+  const debts = state.commitments.filter(c => c.kind === "debt").reduce((s, c) => s + c.amount, 0);
+  const savings = state.commitments.filter(c => c.kind === "savings").reduce((s, c) => s + c.amount, 0);
+  const yearly = state.commitments.filter(c => c.kind === "yearly").reduce((s, c) => s + c.amount / 12, 0);
+  planSlices.push({ label: "Bills", value: bills, color: "#3A5E7A" });
+  planSlices.push({ label: "Debt", value: debts, color: "#B5432F" });
+  planSlices.push({ label: "Savings", value: savings, color: "#2F7A52" });
+  if (yearly > 0) planSlices.push({ label: "Yearly set-aside", value: yearly, color: "#7A5EA8" });
+  planSlices.push({ label: "Envelopes", value: envelopeTotal, color: "#C8862F" });
+  if (unallocated > 0) planSlices.push({ label: "Unassigned", value: unallocated, color: "#5C6B63" });
+  renderPie($("planPie"), $("planLegend"), planSlices);
+
+  const actualSlices = state.categories.map((c, i) => ({
+    label: c.name, value: (spentByCat[c.id] || 0), color: PIE_COLORS[i % PIE_COLORS.length],
+  })).filter(s => s.value > 0);
+  const paidTotals = { bill: 0, debt: 0, savings: 0, yearly: 0 };
+  for (const c of state.commitments) {
+    if (monthPaid[c.id]) paidTotals[c.kind] += c.amount;
+  }
+  if (paidTotals.bill > 0) actualSlices.push({ label: "Bills paid", value: paidTotals.bill, color: "#3A5E7A" });
+  if (paidTotals.debt > 0) actualSlices.push({ label: "Debt paid", value: paidTotals.debt, color: "#B5432F" });
+  if (paidTotals.savings > 0) actualSlices.push({ label: "Savings", value: paidTotals.savings, color: "#2F7A52" });
+  if (paidTotals.yearly > 0) actualSlices.push({ label: "Yearly paid", value: paidTotals.yearly, color: "#7A5EA8" });
+  renderPie($("actualPie"), $("actualLegend"), actualSlices);
+
+  $("bucketList").innerHTML = state.buckets.map(b => {
+    const isDef = !!b.isDefault;
+    const isSavings = b.kind === "savings";
+    return '<div class="bucket' + (isSavings ? ' is-savings' : '') + '">' +
+      '<div style="min-width:0;flex:1">' +
+      '<div class="b-name">' + esc(b.name) + (isDef ? ' <span class="default-tag">DEFAULT</span>' : '') + '</div>' +
+      '<div class="b-amount mono">' + money(b.balance) + '</div>' +
+      '</div>' +
+      '<div class="b-actions">' +
+      '<button class="minibtn" data-action="bucket-deposit" data-id="' + esc(b.id) + '">+ Deposit</button>' +
+      '<button class="minibtn ghost" data-action="bucket-withdraw" data-id="' + esc(b.id) + '">Withdraw</button>' +
+      (isDef ? '' : '<button class="minibtn ghost" data-action="bucket-default" data-id="' + esc(b.id) + '">Make default</button>') +
+      (state.buckets.length > 1 ? '<button class="minibtn ghost" data-action="bucket-remove" data-id="' + esc(b.id) + '">Remove</button>' : '') +
+      '</div></div>';
+  }).join("");
+
+  // focus editor input if open
   const input = $("editName") || $("editAmount");
   if (input) { input.focus(); input.select(); }
 }
+
+// ---------- tabs ----------
+function showTab(name) {
+  activeTab = name;
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id !== "tab-" + name));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
 
 // ---------- actions ----------
 document.body.addEventListener("click", ev => {
@@ -912,9 +1071,7 @@ document.body.addEventListener("click", ev => {
   if (action === "edit") { editing = id; confirmRm = null; render(); }
   else if (action === "cancel-edit") { editing = null; render(); }
   else if (action === "save-edit") {
-    const amtEl = $("editAmount");
-    const nameEl = $("editName");
-    const dueEl = $("editDue");
+    const amtEl = $("editAmount"), nameEl = $("editName"), dueEl = $("editDue");
     const val = amtEl ? parseFloat(amtEl.value) : NaN;
     const newName = nameEl ? nameEl.value.trim() : null;
     if (id === "income") {
@@ -928,15 +1085,14 @@ document.body.addEventListener("click", ev => {
           const due = parseInt(dueEl.value, 10);
           c.dueDay = (Number.isFinite(due) && due >= 1 && due <= 31) ? due : null;
         }
-        const monthEl = $("editMonth");
-        if (monthEl) c.dueMonth = parseInt(monthEl.value, 10);
+        const mEl = $("editMonth"); if (mEl) c.dueMonth = parseInt(mEl.value, 10);
+        const bEl = $("editBucket"); if (bEl) c.defaultBucket = bEl.value;
       }
       const cat = state.categories.find(x => x.id === id);
       if (cat) {
         if (Number.isFinite(val) && val >= 0) cat.budget = val;
         if (newName) cat.name = newName;
-        const periodEl = $("editPeriod");
-        if (periodEl) cat.period = periodEl.value;
+        const pEl = $("editPeriod"); if (pEl) cat.period = pEl.value;
       }
     }
     editing = null;
@@ -953,20 +1109,41 @@ document.body.addEventListener("click", ev => {
     confirmRm = null;
     commit();
   }
-  else if (action === "toggle-paid") {
+  else if (action === "toggle-paid" || action === "toggle-paid-quick") {
     const m = Object.assign({}, state.paid[monthKey] || {});
-    if (m[id]) delete m[id]; else m[id] = true;
-    state.paid[monthKey] = m;
-    commit();
+    const c = state.commitments.find(x => x.id === id);
+    if (m[id]) {
+      delete m[id];
+      state.paid[monthKey] = m;
+      commit();
+    } else {
+      if (!c) return;
+      const budgeted = c.amount;
+      const val = window.prompt("How much did you actually pay for " + c.name + "?", String(budgeted));
+      if (val === null) return;
+      const actual = parseFloat(val);
+      if (!Number.isFinite(actual) || actual < 0) return;
+      m[id] = true;
+      state.paid[monthKey] = m;
+      if (!state.payHistory[c.id]) state.payHistory[c.id] = [];
+      const arr = state.payHistory[c.id].filter(h => h.monthKey !== monthKey);
+      arr.push({ date: new Date().toISOString(), amount: actual, monthKey });
+      arr.sort((a, b) => a.monthKey.localeCompare(b.monthKey));
+      state.payHistory[c.id] = arr;
+      const diff = budgeted - actual;
+      if (diff > 0.005) {
+        const bucketId = c.defaultBucket || (state.buckets.find(b => b.isDefault) || state.buckets[0]).id;
+        const bucket = state.buckets.find(b => b.id === bucketId);
+        if (bucket) bucket.balance = (bucket.balance || 0) + diff;
+      }
+      commit();
+    }
   }
   else if (action === "del-expense") {
     state.expenses = state.expenses.filter(e => e.id !== id);
     commit();
   }
-  else if (action === "set-period") {
-    viewedPeriodStart = id;
-    render();
-  }
+  else if (action === "set-period") { viewedPeriodStart = id; render(); }
   else if (action === "toggle-cash") {
     const cat = state.categories.find(c => c.id === id);
     if (cat) cat.cash = !cat.cash;
@@ -975,45 +1152,78 @@ document.body.addEventListener("click", ev => {
   else if (action === "pull-cash") {
     const cat = state.categories.find(c => c.id === id);
     if (!cat) return;
-    const period = btn.dataset.period;
-    state.cashLog[cashKey(period, id)] = { pulled: perPeriodCap(cat), leftover: null };
+    state.cashLog[cashKey(btn.dataset.period, id)] = { pulled: perPeriodCap(cat), leftover: null };
     commit();
   }
   else if (action === "pull-cash-custom") {
-    const period = btn.dataset.period;
     const val = window.prompt("How much did you pull?");
     if (val === null) return;
     const num = parseFloat(val);
     if (!Number.isFinite(num) || num < 0) return;
-    state.cashLog[cashKey(period, id)] = { pulled: num, leftover: null };
+    state.cashLog[cashKey(btn.dataset.period, id)] = { pulled: num, leftover: null };
     commit();
   }
   else if (action === "close-period") {
-    const period = btn.dataset.period;
-    const ck = cashKey(period, id);
+    const ck = cashKey(btn.dataset.period, id);
     const log = state.cashLog[ck];
     if (!log || typeof log.pulled !== "number") return;
-    const val = window.prompt("How much cash is left in the " + (state.categories.find(c=>c.id===id)||{}).name + " envelope?", "0");
+    const catName = (state.categories.find(c=>c.id===id)||{}).name;
+    const val = window.prompt("How much cash is left in " + catName + "?", "0");
     if (val === null) return;
     const leftover = parseFloat(val);
     if (!Number.isFinite(leftover) || leftover < 0) return;
     log.leftover = leftover;
     if (leftover > 0) {
-      state.jar = (state.jar || 0) + leftover;
-      state.jarLog.push({ date: new Date().toISOString(), amount: leftover, note: "From " + (state.categories.find(c=>c.id===id)||{}).name + " (period " + period + ")" });
+      const bucket = state.buckets.find(b => b.isDefault) || state.buckets[0];
+      bucket.balance = (bucket.balance || 0) + leftover;
     }
     commit();
   }
   else if (action === "reset-cash") {
-    const period = btn.dataset.period;
-    const ck = cashKey(period, id);
+    const ck = cashKey(btn.dataset.period, id);
     const log = state.cashLog[ck];
     if (log && typeof log.leftover === "number" && log.leftover > 0) {
-      // also reverse the jar contribution
-      state.jar = Math.max(0, (state.jar || 0) - log.leftover);
-      state.jarLog.push({ date: new Date().toISOString(), amount: -log.leftover, note: "Reversed leftover from " + (state.categories.find(c=>c.id===id)||{}).name });
+      const bucket = state.buckets.find(b => b.isDefault) || state.buckets[0];
+      bucket.balance = Math.max(0, (bucket.balance || 0) - log.leftover);
     }
     delete state.cashLog[ck];
+    commit();
+  }
+  else if (action === "bucket-deposit") {
+    const b = state.buckets.find(x => x.id === id); if (!b) return;
+    const val = window.prompt("Deposit how much into " + b.name + "?");
+    if (val === null) return;
+    const num = parseFloat(val);
+    if (!Number.isFinite(num) || num <= 0) return;
+    b.balance = (b.balance || 0) + num;
+    commit();
+  }
+  else if (action === "bucket-withdraw") {
+    const b = state.buckets.find(x => x.id === id); if (!b) return;
+    const val = window.prompt("Withdraw how much from " + b.name + "?");
+    if (val === null) return;
+    const num = parseFloat(val);
+    if (!Number.isFinite(num) || num <= 0) return;
+    if (num > b.balance) { alert("Only " + money(b.balance) + " in " + b.name + "."); return; }
+    b.balance -= num;
+    commit();
+  }
+  else if (action === "bucket-default") {
+    for (const b of state.buckets) b.isDefault = (b.id === id);
+    commit();
+  }
+  else if (action === "bucket-remove") {
+    if (state.buckets.length <= 1) { alert("You need at least one bucket."); return; }
+    const b = state.buckets.find(x => x.id === id); if (!b) return;
+    if (!confirm("Remove " + b.name + "? Its " + money(b.balance) + " will move to the default bucket.")) return;
+    const remaining = state.buckets.filter(x => x.id !== id);
+    let def = remaining.find(x => x.isDefault) || remaining[0];
+    def.balance = (def.balance || 0) + (b.balance || 0);
+    if (!def.isDefault) def.isDefault = true;
+    state.buckets = remaining;
+    for (const c of state.commitments) {
+      if (c.defaultBucket === id) c.defaultBucket = def.id;
+    }
     commit();
   }
 });
@@ -1027,6 +1237,7 @@ document.body.addEventListener("keydown", ev => {
   if (ev.key === "Escape") { editing = null; render(); }
 });
 
+// ---------- form buttons ----------
 $("prevMonth").addEventListener("click", () => { monthKey = shiftMonth(monthKey, -1); editing = null; confirmRm = null; render(); });
 $("nextMonth").addEventListener("click", () => { monthKey = shiftMonth(monthKey, 1); editing = null; confirmRm = null; render(); });
 
@@ -1044,6 +1255,7 @@ $("addCommitBtn").addEventListener("click", () => {
     id: uid(), name, amount: amt, kind,
     dueDay: (Number.isFinite(due) && due >= 1 && due <= 31) ? due : null,
     dueMonth: kind === "yearly" ? parseInt($("newCommitMonth").value, 10) : null,
+    defaultBucket: (state.buckets.find(b => b.isDefault) || state.buckets[0]).id,
   });
   $("newCommitName").value = ""; $("newCommitAmt").value = ""; $("newCommitDue").value = "";
   commit();
@@ -1065,8 +1277,16 @@ $("addExpBtn").addEventListener("click", () => {
 $("addCatBtn").addEventListener("click", () => {
   const name = $("newCatName").value.trim();
   if (!name) return;
-  state.categories.push({ id: uid(), name, budget: 0, period: $("newCatPeriod").value });
+  state.categories.push({ id: uid(), name, budget: 0, period: $("newCatPeriod").value, cash: false });
   $("newCatName").value = "";
+  commit();
+});
+
+$("addBucketBtn").addEventListener("click", () => {
+  const name = $("newBucketName").value.trim();
+  if (!name) return;
+  state.buckets.push({ id: uid(), name, balance: 0, isDefault: false, kind: $("newBucketKind").value });
+  $("newBucketName").value = "";
   commit();
 });
 
@@ -1077,22 +1297,18 @@ $("savePaycheckBtn").addEventListener("click", () => {
   commit();
 });
 
-$("jarSpendBtn").addEventListener("click", () => {
-  const val = window.prompt("Withdraw how much from the jar?");
-  if (val === null) return;
-  const num = parseFloat(val);
-  if (!Number.isFinite(num) || num <= 0) return;
-  if (num > state.jar) { alert("Only " + money(state.jar) + " in the jar."); return; }
-  const note = window.prompt("What's it for? (optional)") || "Jar withdrawal";
-  state.jar -= num;
-  state.jarLog.push({ date: new Date().toISOString(), amount: -num, note });
-  commit();
+// ---------- settings drawer ----------
+$("settingsBtn").addEventListener("click", () => {
+  $("paycheckAnchorSetting").value = state.paycheckAnchor || "";
+  $("drawer").classList.remove("hidden");
 });
+$("closeDrawerBtn").addEventListener("click", () => $("drawer").classList.add("hidden"));
+$("drawer").addEventListener("click", ev => { if (ev.target.id === "drawer") $("drawer").classList.add("hidden"); });
 
-$("jarResetBtn").addEventListener("click", () => {
-  if (!confirm("Reset jar to $0? This won't undo individual deposits in the log, just zeros the balance.")) return;
-  state.jar = 0;
-  state.jarLog.push({ date: new Date().toISOString(), amount: 0, note: "Jar reset" });
+$("savePaycheckSettingBtn").addEventListener("click", () => {
+  const val = $("paycheckAnchorSetting").value;
+  if (!val) return;
+  state.paycheckAnchor = val;
   commit();
 });
 
@@ -1108,12 +1324,13 @@ $("restoreBtn").addEventListener("click", () => {
   try {
     const data = JSON.parse($("restoreArea").value.trim());
     if (!applyData(data)) throw new Error("empty");
+    ensureBuckets();
     $("restoreArea").value = "";
-    msg.textContent = "Restored — your budget is back. Syncing to cloud…";
+    msg.textContent = "Restored — syncing.";
     msg.style.color = "var(--green)";
     commit();
   } catch (e) {
-    msg.textContent = "That code couldn't be read. Make sure you pasted the whole thing, starting with { and ending with }.";
+    msg.textContent = "Couldn't read that. Make sure the whole thing is pasted.";
     msg.style.color = "var(--red)";
   }
 });
@@ -1133,38 +1350,36 @@ function authMsg(text, isErr) {
 async function startApp() {
   $("userEmail").textContent = currentUser.email || "";
   show("app");
-  // 1. show local cache instantly if present
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) applyData(JSON.parse(raw));
-  } catch (e) { /* ignore */ }
+  } catch (e) {}
+  ensureBuckets();
   render();
-  setSaveMsg("Loading from cloud&hellip;");
-  // 2. cloud is the source of truth
+  setSaveMsg("Loading&hellip;");
   try {
     const cloud = await fetchCloud();
     if (cloud) {
       applyData(cloud);
+      ensureBuckets();
       persistLocal();
       render();
       setSaveMsg('<span class="ok">&#10003; Up to date</span>');
     } else {
-      // no cloud data yet: rescue whatever this device has (your old budget!)
-      setSaveMsg("First sign-in &mdash; uploading this device's data&hellip;");
+      setSaveMsg("First sign-in &mdash; uploading&hellip;");
       await doCloudSave();
     }
   } catch (e) {
-    setSaveMsg('<span class="bad">&#9888; Couldn\'t reach the cloud (' + esc(e.message || e) + '). Changes are kept on this device and will sync when it works.</span>');
+    setSaveMsg('<span class="bad">&#9888; Offline (' + esc(e.message || e) + ')</span>');
   }
 }
 
-// refresh from cloud when returning to the app (e.g. wife added expenses)
 document.addEventListener("visibilitychange", async () => {
   if (document.hidden || !currentUser || dirty || saveInFlight) return;
   try {
     const cloud = await fetchCloud();
-    if (cloud) { applyData(cloud); persistLocal(); render(); }
-  } catch (e) { /* quiet */ }
+    if (cloud) { applyData(cloud); ensureBuckets(); persistLocal(); render(); }
+  } catch (e) {}
 });
 
 $("signInBtn").addEventListener("click", async () => {
@@ -1184,14 +1399,12 @@ $("signUpBtn").addEventListener("click", async () => {
   const { data, error } = await sb.auth.signUp({ email, password: pass });
   if (error) { authMsg(error.message, true); return; }
   if (data.session) authMsg("Account created!", false);
-  else authMsg("Account created — check your email to confirm, then sign in.", false);
+  else authMsg("Account created — check your email to confirm.", false);
 });
 
-$("signOutBtn").addEventListener("click", async () => {
-  await sb.auth.signOut();
-});
+$("signOutBtn").addEventListener("click", async () => { await sb.auth.signOut(); });
 
-// ---------- start ----------
+// ---------- init ----------
 (function init() {
   if (SUPABASE_URL.includes("PASTE_") || SUPABASE_ANON_KEY.includes("PASTE_")) {
     show("setup");
@@ -1210,7 +1423,6 @@ $("signOutBtn").addEventListener("click", async () => {
   });
   sb.auth.getSession().then(({ data }) => {
     if (!data.session) show("auth");
-    // if a session exists, onAuthStateChange fires and starts the app
   });
 })();
 </script>
