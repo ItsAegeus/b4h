@@ -48,6 +48,50 @@ body {
 .alert.bad { background: var(--red-soft); color: var(--red); }
 .alert.good { background: var(--green-soft); color: var(--green); }
 
+.charts { display: flex; gap: 12px; margin: 12px 0 0; }
+.chart-box { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; }
+.chart-title { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; font-weight: 600; letter-spacing: 0.04em; }
+.chart-svg { width: 100%; height: auto; max-width: 140px; display: block; margin: 0 auto; }
+.legend { font-size: 11px; margin-top: 6px; text-align: left; }
+.legend-row { display: flex; align-items: center; gap: 5px; padding: 1px 0; line-height: 1.3; }
+.legend-sw { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+.legend-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.legend-val { font-family: 'IBM Plex Mono', monospace; color: var(--ink-soft); font-size: 10px; }
+
+.jar { background: linear-gradient(180deg, #fff 0%, #FFF8E7 100%); border: 1px solid #E8D5A8; }
+.jar .jar-amount { font-family: 'Zilla Slab', serif; font-size: 28px; font-weight: 600; color: var(--amber); }
+.jar .jar-label { font-size: 12px; color: var(--ink-soft); }
+
+.payperiod-tabs { display: flex; gap: 6px; margin: 10px 0 6px; }
+.payperiod-tabs button {
+  flex: 1; font-family: inherit; font-size: 13px; padding: 8px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+  color: var(--ink-soft); cursor: pointer;
+}
+.payperiod-tabs button.on { background: var(--green); color: #fff; border-color: var(--green); font-weight: 600; }
+.payperiod-tabs button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.cash-toggle {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 11px;
+  padding: 2px 8px; border-radius: 10px; background: var(--paper); color: var(--ink-soft);
+  border: 1px solid var(--line); cursor: pointer; font-family: inherit;
+}
+.cash-toggle.on { background: var(--amber-soft); color: var(--amber); border-color: var(--amber); font-weight: 600; }
+.cash-toggle:focus-visible { outline: 2px solid var(--green); }
+
+.cash-status { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 6px; font-size: 13px; }
+.cash-status .item { display: flex; flex-direction: column; }
+.cash-status .lbl { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+.cash-status .val { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+.cash-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+.threecheck-banner {
+  background: linear-gradient(135deg, #DDEAE1, #F3E6D2);
+  border: 1px solid var(--green); border-radius: 12px;
+  padding: 12px 14px; margin: 12px 0; font-size: 14px;
+}
+.threecheck-banner strong { color: var(--green); }
+
 .section-title {
   font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--ink-soft); margin: 22px 0 10px; font-weight: 600;
@@ -236,6 +280,44 @@ body {
       <div id="planAlert"></div>
     </div>
 
+    <div id="paycheckSetup" class="hidden alert good" style="margin-top:10px">
+      <div style="font-weight:600;margin-bottom:6px">First-time setup: when does payday land?</div>
+      <div class="note">Pick any recent Friday you got paid — we'll use that to figure out the every-other-Friday pattern for cash withdrawals.</div>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
+        <input type="date" id="paycheckAnchor" style="font-family:inherit;font-size:15px;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff">
+        <button class="btn auto" id="savePaycheckBtn">Save</button>
+      </div>
+    </div>
+
+    <div id="threecheckBanner" class="hidden threecheck-banner"></div>
+
+    <div class="charts">
+      <div class="chart-box">
+        <div class="chart-title">PLAN</div>
+        <svg class="chart-svg" id="planPie" viewBox="0 0 100 100"></svg>
+        <div class="legend" id="planLegend"></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">ACTUAL</div>
+        <svg class="chart-svg" id="actualPie" viewBox="0 0 100 100"></svg>
+        <div class="legend" id="actualLegend"></div>
+      </div>
+    </div>
+
+    <div class="chart-box jar" style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left">
+      <div>
+        <div class="jar-label">In the jar</div>
+        <div class="jar-amount mono" id="jarAmount">$0.00</div>
+        <div class="jar-label" id="jarDetail" style="margin-top:2px"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="minibtn ghost" id="jarSpendBtn">Withdraw</button>
+        <button class="minibtn ghost" id="jarResetBtn">Reset</button>
+      </div>
+    </div>
+
+    <div class="payperiod-tabs" id="payperiodTabs"></div>
+
     <div class="section-title"><span>Bills, debt &amp; savings</span><span class="hint">check off as paid</span></div>
     <div id="commitList"></div>
     <div class="newrow">
@@ -315,14 +397,19 @@ let state = {
   ],
   paid: {},
   categories: [
-    { id: "groc", name: "Groceries", budget: 600, period: "monthly" },
-    { id: "dine", name: "Dining Out", budget: 200, period: "monthly" },
-    { id: "gas", name: "Gas", budget: 250, period: "monthly" },
-    { id: "pets", name: "Pets", budget: 100, period: "monthly" },
-    { id: "fun", name: "Fun Money", budget: 150, period: "monthly" },
+    { id: "groc", name: "Groceries", budget: 600, period: "monthly", cash: false },
+    { id: "dine", name: "Dining Out", budget: 200, period: "monthly", cash: false },
+    { id: "gas", name: "Gas", budget: 250, period: "monthly", cash: false },
+    { id: "pets", name: "Pets", budget: 100, period: "monthly", cash: false },
+    { id: "fun", name: "Fun Money", budget: 150, period: "monthly", cash: false },
   ],
   expenses: [],
+  paycheckAnchor: null,   // ISO date string of a known paycheck Friday
+  cashLog: {},            // { "2026-06-12_groc": { pulled: 150, leftover: null } }
+  jar: 0,                 // running savings jar total
+  jarLog: [],             // [{ date, amount, note }]
 };
+let viewedPeriodStart = null;   // ISO date of the Friday starting the period being viewed
 let monthKey = new Date().toISOString().slice(0, 7);
 let editing = null;
 let confirmRm = null;
@@ -360,7 +447,100 @@ function applyData(data) {
   if (Array.isArray(data.commitments)) { state.commitments = data.commitments; any = true; }
   if (typeof data.income === "number") { state.income = data.income; any = true; }
   if (data.paid && typeof data.paid === "object") { state.paid = data.paid; any = true; }
+  if (typeof data.paycheckAnchor === "string") { state.paycheckAnchor = data.paycheckAnchor; any = true; }
+  if (data.cashLog && typeof data.cashLog === "object") { state.cashLog = data.cashLog; any = true; }
+  if (typeof data.jar === "number") { state.jar = data.jar; any = true; }
+  if (Array.isArray(data.jarLog)) { state.jarLog = data.jarLog; any = true; }
   return any;
+}
+
+// ---------- pay-period helpers (every other Friday) ----------
+const dateToISO = d => d.toISOString().slice(0, 10);
+const isoToDate = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+// returns ISO date of the period-start (a Friday) that contains the given date
+function periodStartFor(date) {
+  if (!state.paycheckAnchor) return null;
+  const anchor = isoToDate(state.paycheckAnchor);
+  const diffDays = Math.floor((date - anchor) / 86400000);
+  // each period is 14 days; floor to multiple of 14
+  const periodsFromAnchor = Math.floor(diffDays / 14);
+  const start = new Date(anchor);
+  start.setDate(anchor.getDate() + periodsFromAnchor * 14);
+  return dateToISO(start);
+}
+function periodEnd(startISO) {
+  const d = isoToDate(startISO);
+  d.setDate(d.getDate() + 13);
+  return d;
+}
+function shiftPeriod(startISO, n) {
+  const d = isoToDate(startISO);
+  d.setDate(d.getDate() + n * 14);
+  return dateToISO(d);
+}
+function periodLabel(startISO) {
+  const start = isoToDate(startISO);
+  const end = periodEnd(startISO);
+  const fmt = d => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return fmt(start) + " – " + fmt(end);
+}
+// count paychecks in a calendar month (3 = bonus month)
+function paychecksInMonth(monthKey) {
+  if (!state.paycheckAnchor) return 2;
+  const [y, m] = monthKey.split("-").map(Number);
+  const monthStart = new Date(y, m-1, 1);
+  const monthEnd = new Date(y, m, 0);
+  let count = 0;
+  let p = periodStartFor(monthStart);
+  if (!p) return 2;
+  // p may be before monthStart; iterate forward
+  let cursor = isoToDate(p);
+  while (cursor <= monthEnd) {
+    if (cursor >= monthStart && cursor <= monthEnd) count++;
+    cursor.setDate(cursor.getDate() + 14);
+  }
+  return count;
+}
+// monthly cap halved per pay period (your rule: half of each envelope)
+function perPeriodCap(cat) {
+  const monthly = cat.period === "yearly" ? cat.budget / 12 : cat.budget;
+  return monthly / 2;
+}
+const cashKey = (startISO, catId) => startISO + "_" + catId;
+
+// ---------- pie chart ----------
+const PIE_COLORS = ["#3A5E7A", "#B5432F", "#2F7A52", "#C8862F", "#7A5EA8", "#5C6B63", "#8FAF9E", "#D89B6A", "#A0567A", "#4C7B8C"];
+function renderPie(svgEl, legendEl, slices) {
+  // slices: [{ label, value, color? }]
+  const total = slices.reduce((s, x) => s + x.value, 0);
+  if (total <= 0) {
+    svgEl.innerHTML = '<circle cx="50" cy="50" r="38" fill="none" stroke="#D5DCD4" stroke-width="2" stroke-dasharray="2 2"/>';
+    legendEl.innerHTML = '<div class="legend-row" style="color:var(--ink-soft);justify-content:center">No data yet</div>';
+    return;
+  }
+  let angle = -Math.PI / 2; // start at top
+  const paths = [];
+  slices.forEach((s, i) => {
+    if (s.value <= 0) return;
+    const frac = s.value / total;
+    const next = angle + frac * 2 * Math.PI;
+    const large = frac > 0.5 ? 1 : 0;
+    const x1 = 50 + 38 * Math.cos(angle), y1 = 50 + 38 * Math.sin(angle);
+    const x2 = 50 + 38 * Math.cos(next), y2 = 50 + 38 * Math.sin(next);
+    const color = s.color || PIE_COLORS[i % PIE_COLORS.length];
+    if (frac >= 0.999) {
+      paths.push('<circle cx="50" cy="50" r="38" fill="' + color + '"/>');
+    } else {
+      paths.push('<path d="M50,50 L' + x1.toFixed(2) + ',' + y1.toFixed(2) + ' A38,38 0 ' + large + ',1 ' + x2.toFixed(2) + ',' + y2.toFixed(2) + ' Z" fill="' + color + '"/>');
+    }
+    angle = next;
+  });
+  svgEl.innerHTML = paths.join("");
+  legendEl.innerHTML = slices.filter(s => s.value > 0).map((s, i) =>
+    '<div class="legend-row"><span class="legend-sw" style="background:' + (s.color || PIE_COLORS[i % PIE_COLORS.length]) + '"></span>' +
+    '<span class="legend-name">' + esc(s.label) + '</span>' +
+    '<span class="legend-val">' + money(s.value) + '</span></div>'
+  ).join("");
 }
 
 // ---------- persistence: local cache + cloud ----------
@@ -530,21 +710,100 @@ function render() {
       '<div class="body"><div class="name">' + esc(c.name) + '</div><div class="tag ' + c.kind + '">' + KIND_LABEL[c.kind] + '</div>' + setAside + dueInfoHTML(c, isPaid) + '</div>' + right + '</div>';
   }).join("");
 
+  // paycheck setup banner (shown until user sets anchor)
+  $("paycheckSetup").classList.toggle("hidden", !!state.paycheckAnchor);
+
+  // 3-paycheck month banner
+  const checks = paychecksInMonth(monthKey);
+  if (state.paycheckAnchor && checks >= 3) {
+    $("threecheckBanner").classList.remove("hidden");
+    $("threecheckBanner").innerHTML = '&#127881; <strong>Bonus paycheck month!</strong> ' + monthLabel(monthKey) + ' has ' + checks + ' paychecks. The extra one isn\'t budgeted &mdash; consider sending it straight to debt paydown or savings.';
+  } else {
+    $("threecheckBanner").classList.add("hidden");
+  }
+
+  // Pay-period tabs (initialize viewed period if needed)
+  const tabsEl = $("payperiodTabs");
+  if (state.paycheckAnchor) {
+    // determine which periods overlap this viewed month
+    const [y, m] = monthKey.split("-").map(Number);
+    const monthStart = new Date(y, m-1, 1);
+    const monthEnd = new Date(y, m, 0);
+    const periods = [];
+    let cursorISO = periodStartFor(monthStart);
+    let cursor = isoToDate(cursorISO);
+    // back up if first period started in prior month and still overlaps
+    if (periodEnd(cursorISO) < monthStart) {
+      cursor.setDate(cursor.getDate() + 14);
+      cursorISO = dateToISO(cursor);
+    }
+    while (cursor <= monthEnd) {
+      periods.push(dateToISO(cursor));
+      cursor.setDate(cursor.getDate() + 14);
+    }
+    if (periods.length === 0) periods.push(cursorISO);
+    if (!viewedPeriodStart || !periods.includes(viewedPeriodStart)) {
+      // default: period containing today, else first period of month
+      const todayPeriod = periodStartFor(new Date());
+      viewedPeriodStart = periods.includes(todayPeriod) ? todayPeriod : periods[0];
+    }
+    tabsEl.innerHTML = periods.map((p, i) =>
+      '<button class="' + (p === viewedPeriodStart ? "on" : "") + '" data-action="set-period" data-id="' + p + '">Period ' + (i+1) + ': ' + periodLabel(p) + '</button>'
+    ).join("");
+    tabsEl.classList.remove("hidden");
+  } else {
+    tabsEl.classList.add("hidden");
+    viewedPeriodStart = null;
+  }
+
   // expense category select (preserve selection)
   const sel = $("expCat");
   const prev = sel.value;
   sel.innerHTML = state.categories.map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>').join("");
   if (state.categories.some(c => c.id === prev)) sel.value = prev;
 
-  // envelopes
+  // ----- pie charts -----
+  // Plan slices: bills, debt, savings, yearly set-asides, each envelope category, unassigned
+  const planSlices = [];
+  const bills = state.commitments.filter(c => c.kind === "bill").reduce((s, c) => s + c.amount, 0);
+  const debts = state.commitments.filter(c => c.kind === "debt").reduce((s, c) => s + c.amount, 0);
+  const savings = state.commitments.filter(c => c.kind === "savings").reduce((s, c) => s + c.amount, 0);
+  const yearly = state.commitments.filter(c => c.kind === "yearly").reduce((s, c) => s + c.amount / 12, 0);
+  planSlices.push({ label: "Bills", value: bills, color: "#3A5E7A" });
+  planSlices.push({ label: "Debt", value: debts, color: "#B5432F" });
+  planSlices.push({ label: "Savings", value: savings, color: "#2F7A52" });
+  if (yearly > 0) planSlices.push({ label: "Yearly set-aside", value: yearly, color: "#7A5EA8" });
+  const envSlice = state.categories.reduce((s, c) => s + (c.period === "yearly" ? c.budget / 12 : c.budget), 0);
+  planSlices.push({ label: "Envelopes", value: envSlice, color: "#C8862F" });
+  if (unallocated > 0) planSlices.push({ label: "Unassigned", value: unallocated, color: "#5C6B63" });
+  renderPie($("planPie"), $("planLegend"), planSlices);
+
+  // Actual slices: spent per envelope category + bills/debt/savings paid this month
+  const actualSlices = state.categories.map((c, i) => ({
+    label: c.name,
+    value: (spentByCat[c.id] || 0),
+    color: PIE_COLORS[i % PIE_COLORS.length],
+  })).filter(s => s.value > 0);
+  // paid commitments contribute their amount
+  const paidCommitTotals = { bill: 0, debt: 0, savings: 0, yearly: 0 };
+  for (const c of state.commitments) {
+    if (monthPaid[c.id]) paidCommitTotals[c.kind] += (c.kind === "yearly" ? c.amount : c.amount);
+  }
+  if (paidCommitTotals.bill > 0) actualSlices.push({ label: "Bills paid", value: paidCommitTotals.bill, color: "#3A5E7A" });
+  if (paidCommitTotals.debt > 0) actualSlices.push({ label: "Debt paid", value: paidCommitTotals.debt, color: "#B5432F" });
+  if (paidCommitTotals.savings > 0) actualSlices.push({ label: "Savings", value: paidCommitTotals.savings, color: "#2F7A52" });
+  if (paidCommitTotals.yearly > 0) actualSlices.push({ label: "Yearly paid", value: paidCommitTotals.yearly, color: "#7A5EA8" });
+  renderPie($("actualPie"), $("actualLegend"), actualSlices);
+
+  // ----- jar -----
+  $("jarAmount").textContent = money(state.jar);
+  $("jarDetail").textContent = state.jarLog.length === 0 ? "Leftover cash from envelopes ends up here." :
+    "Last activity: " + new Date(state.jarLog[state.jarLog.length-1].date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+  // envelopes (cash-mode aware)
   $("envList").innerHTML = state.categories.map(cat => {
     const isYearly = cat.period === "yearly";
-    const spent = (isYearly ? spentByCatYear[cat.id] : spentByCat[cat.id]) || 0;
-    const pct = cat.budget > 0 ? Math.min(spent / cat.budget, 1) : spent > 0 ? 1 : 0;
-    const over = cat.budget > 0 && spent > cat.budget;
-    const warn = !over && cat.budget > 0 && spent / cat.budget >= 0.8;
-    const remaining = cat.budget - spent;
-    const tone = over ? "over" : warn ? "warn" : "ok";
+    const isCash = !!cat.cash && !isYearly && !!viewedPeriodStart;
     let actions;
     if (editing === cat.id) actions = catEditorHTML(cat);
     else if (confirmRm === cat.id) {
@@ -552,20 +811,77 @@ function render() {
       actions = '<button class="minibtn danger" data-action="remove" data-id="' + esc(cat.id) + '">Remove envelope' + (hasExp ? " &amp; its expenses" : "") + '</button>' +
         '<button class="minibtn ghost" data-action="cancel-remove">Keep</button>';
     } else {
+      const cashToggle = isYearly ? "" :
+        '<button class="cash-toggle' + (cat.cash ? " on" : "") + '" data-action="toggle-cash" data-id="' + esc(cat.id) + '">' + (cat.cash ? "💵 Cash" : "💳 Card") + '</button>';
       actions = '<button class="linkbtn" data-action="edit" data-id="' + esc(cat.id) + '">Edit cap</button>' +
-        '<button class="linkbtn" data-action="confirm-remove" data-id="' + esc(cat.id) + '">Remove</button>';
+        '<button class="linkbtn" data-action="confirm-remove" data-id="' + esc(cat.id) + '">Remove</button>' +
+        cashToggle;
     }
-    const subLeft = isYearly ? money(spent) + ' spent in ' + viewYear : money(spent) + ' spent';
-    const subRight = isYearly
-      ? 'cap ' + money(cat.budget) + '/yr &middot; ' + money(cat.budget / 12) + '/mo set aside'
-      : 'cap ' + money(cat.budget);
-    return '<div class="envelope">' +
-      '<div class="fill ' + (tone !== "ok" ? tone : "") + '" style="height:' + (pct * 100) + '%"></div>' +
-      '<div class="env-content"><div class="env-top">' +
-      '<div class="env-name display">' + esc(cat.name) + (isYearly ? ' <span style="font-size:12px;font-weight:400;color:var(--ink-soft);font-family:\'IBM Plex Sans\',sans-serif">yearly</span>' : '') + '</div>' +
-      '<div class="env-remaining mono ' + tone + '">' + (over ? money(Math.abs(remaining)) + " over" : money(remaining) + " left" + (isYearly ? " this year" : "")) + '</div></div>' +
-      '<div class="env-sub"><span class="mono">' + subLeft + '</span><span class="mono">' + subRight + '</span></div>' +
-      '<div class="env-actions">' + actions + '</div></div></div>';
+
+    let body;
+    if (isCash) {
+      // cash mode: pay-period scoped
+      const ck = cashKey(viewedPeriodStart, cat.id);
+      const log = state.cashLog[ck] || {};
+      const suggested = perPeriodCap(cat);
+      const pulled = typeof log.pulled === "number" ? log.pulled : null;
+      const leftover = typeof log.leftover === "number" ? log.leftover : null;
+      const spent = pulled !== null && leftover !== null ? pulled - leftover : null;
+      const pct = (pulled && spent !== null) ? Math.min(spent / pulled, 1) : 0;
+      const over = pulled !== null && leftover !== null && leftover < 0;
+      const tone = over ? "over" : (pulled && spent !== null && spent / pulled >= 0.8) ? "warn" : "ok";
+
+      let cashBody = '';
+      if (pulled === null) {
+        cashBody = '<div class="cash-status"><div class="item"><span class="lbl">Suggested pull</span><span class="val">' + money(suggested) + '</span></div></div>' +
+          '<div class="cash-actions">' +
+          '<button class="minibtn" data-action="pull-cash" data-id="' + esc(cat.id) + '" data-period="' + viewedPeriodStart + '">I pulled ' + money(suggested) + '</button>' +
+          '<button class="minibtn ghost" data-action="pull-cash-custom" data-id="' + esc(cat.id) + '" data-period="' + viewedPeriodStart + '">Other amount</button>' +
+          '</div>';
+      } else if (leftover === null) {
+        cashBody = '<div class="cash-status">' +
+          '<div class="item"><span class="lbl">Pulled</span><span class="val">' + money(pulled) + '</span></div>' +
+          '</div><div class="cash-actions">' +
+          '<button class="minibtn" data-action="close-period" data-id="' + esc(cat.id) + '" data-period="' + viewedPeriodStart + '">End of period: count what\'s left</button>' +
+          '<button class="minibtn ghost" data-action="reset-cash" data-id="' + esc(cat.id) + '" data-period="' + viewedPeriodStart + '">Undo pull</button>' +
+          '</div>';
+      } else {
+        cashBody = '<div class="cash-status">' +
+          '<div class="item"><span class="lbl">Pulled</span><span class="val">' + money(pulled) + '</span></div>' +
+          '<div class="item"><span class="lbl">Spent</span><span class="val">' + money(spent) + '</span></div>' +
+          '<div class="item"><span class="lbl">To jar</span><span class="val" style="color:var(--amber)">' + money(Math.max(leftover, 0)) + '</span></div>' +
+          '</div><div class="cash-actions">' +
+          '<button class="minibtn ghost" data-action="reset-cash" data-id="' + esc(cat.id) + '" data-period="' + viewedPeriodStart + '">Reopen</button>' +
+          '</div>';
+      }
+      body =
+        '<div class="fill ' + (tone !== "ok" ? tone : "") + '" style="height:' + (pct * 100) + '%"></div>' +
+        '<div class="env-content"><div class="env-top">' +
+        '<div class="env-name display">' + esc(cat.name) + ' <span style="font-size:11px;font-weight:400;color:var(--amber);font-family:\'IBM Plex Sans\',sans-serif">cash · this period</span></div>' +
+        '</div>' + cashBody +
+        '<div class="env-actions">' + actions + '</div></div>';
+    } else {
+      // card mode (existing behavior)
+      const spent = (isYearly ? spentByCatYear[cat.id] : spentByCat[cat.id]) || 0;
+      const pct = cat.budget > 0 ? Math.min(spent / cat.budget, 1) : spent > 0 ? 1 : 0;
+      const over = cat.budget > 0 && spent > cat.budget;
+      const warn = !over && cat.budget > 0 && spent / cat.budget >= 0.8;
+      const remaining = cat.budget - spent;
+      const tone = over ? "over" : warn ? "warn" : "ok";
+      const subLeft = isYearly ? money(spent) + ' spent in ' + viewYear : money(spent) + ' spent';
+      const subRight = isYearly
+        ? 'cap ' + money(cat.budget) + '/yr &middot; ' + money(cat.budget / 12) + '/mo set aside'
+        : 'cap ' + money(cat.budget);
+      body =
+        '<div class="fill ' + (tone !== "ok" ? tone : "") + '" style="height:' + (pct * 100) + '%"></div>' +
+        '<div class="env-content"><div class="env-top">' +
+        '<div class="env-name display">' + esc(cat.name) + (isYearly ? ' <span style="font-size:12px;font-weight:400;color:var(--ink-soft);font-family:\'IBM Plex Sans\',sans-serif">yearly</span>' : '') + '</div>' +
+        '<div class="env-remaining mono ' + tone + '">' + (over ? money(Math.abs(remaining)) + " over" : money(remaining) + " left" + (isYearly ? " this year" : "")) + '</div></div>' +
+        '<div class="env-sub"><span class="mono">' + subLeft + '</span><span class="mono">' + subRight + '</span></div>' +
+        '<div class="env-actions">' + actions + '</div></div>';
+    }
+
+    return '<div class="envelope">' + body + '</div>';
   }).join("");
 
   // expenses
@@ -647,6 +963,59 @@ document.body.addEventListener("click", ev => {
     state.expenses = state.expenses.filter(e => e.id !== id);
     commit();
   }
+  else if (action === "set-period") {
+    viewedPeriodStart = id;
+    render();
+  }
+  else if (action === "toggle-cash") {
+    const cat = state.categories.find(c => c.id === id);
+    if (cat) cat.cash = !cat.cash;
+    commit();
+  }
+  else if (action === "pull-cash") {
+    const cat = state.categories.find(c => c.id === id);
+    if (!cat) return;
+    const period = btn.dataset.period;
+    state.cashLog[cashKey(period, id)] = { pulled: perPeriodCap(cat), leftover: null };
+    commit();
+  }
+  else if (action === "pull-cash-custom") {
+    const period = btn.dataset.period;
+    const val = window.prompt("How much did you pull?");
+    if (val === null) return;
+    const num = parseFloat(val);
+    if (!Number.isFinite(num) || num < 0) return;
+    state.cashLog[cashKey(period, id)] = { pulled: num, leftover: null };
+    commit();
+  }
+  else if (action === "close-period") {
+    const period = btn.dataset.period;
+    const ck = cashKey(period, id);
+    const log = state.cashLog[ck];
+    if (!log || typeof log.pulled !== "number") return;
+    const val = window.prompt("How much cash is left in the " + (state.categories.find(c=>c.id===id)||{}).name + " envelope?", "0");
+    if (val === null) return;
+    const leftover = parseFloat(val);
+    if (!Number.isFinite(leftover) || leftover < 0) return;
+    log.leftover = leftover;
+    if (leftover > 0) {
+      state.jar = (state.jar || 0) + leftover;
+      state.jarLog.push({ date: new Date().toISOString(), amount: leftover, note: "From " + (state.categories.find(c=>c.id===id)||{}).name + " (period " + period + ")" });
+    }
+    commit();
+  }
+  else if (action === "reset-cash") {
+    const period = btn.dataset.period;
+    const ck = cashKey(period, id);
+    const log = state.cashLog[ck];
+    if (log && typeof log.leftover === "number" && log.leftover > 0) {
+      // also reverse the jar contribution
+      state.jar = Math.max(0, (state.jar || 0) - log.leftover);
+      state.jarLog.push({ date: new Date().toISOString(), amount: -log.leftover, note: "Reversed leftover from " + (state.categories.find(c=>c.id===id)||{}).name });
+    }
+    delete state.cashLog[ck];
+    commit();
+  }
 });
 
 document.body.addEventListener("keydown", ev => {
@@ -698,6 +1067,32 @@ $("addCatBtn").addEventListener("click", () => {
   if (!name) return;
   state.categories.push({ id: uid(), name, budget: 0, period: $("newCatPeriod").value });
   $("newCatName").value = "";
+  commit();
+});
+
+$("savePaycheckBtn").addEventListener("click", () => {
+  const val = $("paycheckAnchor").value;
+  if (!val) return;
+  state.paycheckAnchor = val;
+  commit();
+});
+
+$("jarSpendBtn").addEventListener("click", () => {
+  const val = window.prompt("Withdraw how much from the jar?");
+  if (val === null) return;
+  const num = parseFloat(val);
+  if (!Number.isFinite(num) || num <= 0) return;
+  if (num > state.jar) { alert("Only " + money(state.jar) + " in the jar."); return; }
+  const note = window.prompt("What's it for? (optional)") || "Jar withdrawal";
+  state.jar -= num;
+  state.jarLog.push({ date: new Date().toISOString(), amount: -num, note });
+  commit();
+});
+
+$("jarResetBtn").addEventListener("click", () => {
+  if (!confirm("Reset jar to $0? This won't undo individual deposits in the log, just zeros the balance.")) return;
+  state.jar = 0;
+  state.jarLog.push({ date: new Date().toISOString(), amount: 0, note: "Jar reset" });
   commit();
 });
 
