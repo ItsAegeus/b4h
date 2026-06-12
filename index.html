@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Household Budget</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --paper: #ECEFE9; --ink: #21302A; --ink-soft: #5C6B63; --card: #FFFFFF;
+  --line: #D5DCD4; --green: #2F7A52; --green-soft: #DDEAE1;
+  --amber: #C8862F; --amber-soft: #F3E6D2; --red: #B5432F; --red-soft: #F2DCD7;
+  --blue: #3A5E7A;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  background: var(--paper); color: var(--ink); margin: 0;
+  padding: 16px 14px 80px;
+}
+.wrap { max-width: 560px; margin: 0 auto; }
+.mono { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+.display { font-family: 'Zilla Slab', serif; }
+.hidden { display: none !important; }
+
+.topbar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--ink-soft); margin-bottom: 10px; min-height: 18px; }
+
+.monthbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.monthbar button {
+  background: none; border: 1px solid var(--line); border-radius: 8px;
+  width: 38px; height: 38px; font-size: 18px; color: var(--ink); cursor: pointer;
+}
+.monthbar button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.month-title { font-size: 24px; font-weight: 600; }
+.savestate { text-align: center; font-size: 12px; color: var(--ink-soft); min-height: 16px; margin-top: 2px; }
+.savestate .ok { color: var(--green); }
+.savestate .bad { color: var(--red); }
+
+.plan { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin: 12px 0 6px; padding: 12px 14px; }
+.plan-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 15px; }
+.plan-row .lbl { color: var(--ink-soft); }
+.plan-row.total { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 9px; font-weight: 600; }
+.plan-row.total .lbl { color: var(--ink); }
+.alert { border-radius: 10px; padding: 10px 12px; font-size: 14px; margin: 8px 0 0; }
+.alert.bad { background: var(--red-soft); color: var(--red); }
+.alert.good { background: var(--green-soft); color: var(--green); }
+
+.section-title {
+  font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-soft); margin: 22px 0 10px; font-weight: 600;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.section-title .hint { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 12px; }
+
+.commit {
+  display: flex; align-items: center; gap: 10px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  margin-bottom: 8px; flex-wrap: wrap;
+}
+.commit.paid { opacity: 0.6; }
+.check {
+  width: 26px; height: 26px; border-radius: 7px; border: 2px solid var(--line);
+  background: #FAFBF9; cursor: pointer; flex-shrink: 0; font-size: 15px; line-height: 1;
+  color: #fff; display: flex; align-items: center; justify-content: center; padding: 0;
+}
+.check.on { background: var(--green); border-color: var(--green); }
+.check:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.commit .body { flex: 1; min-width: 0; }
+.commit .name { font-size: 15px; font-weight: 500; }
+.commit .tag { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.tag.bill { color: var(--blue); } .tag.debt { color: var(--red); } .tag.savings { color: var(--green); } .tag.yearly { color: #7A5EA8; }
+.commit .amt { font-weight: 600; }
+
+.inline-edit { display: flex; gap: 6px; align-items: center; }
+.inline-edit input {
+  font-family: 'IBM Plex Mono', monospace; font-size: 15px; padding: 7px 9px;
+  border: 2px solid var(--green); border-radius: 8px; width: 110px; background: #fff;
+}
+.edit-stack { display: flex; flex-direction: column; gap: 6px; flex: 1 1 100%; margin-top: 4px; }
+.edit-stack label { font-size: 12px; color: var(--ink-soft); }
+.edit-stack input, .edit-stack select {
+  font-family: inherit; font-size: 16px; padding: 9px;
+  border: 2px solid var(--green); border-radius: 8px; background: #fff; width: 100%;
+}
+.edit-stack .btns { display: flex; gap: 6px; }
+.due { font-size: 12px; color: var(--ink-soft); }
+.due.soon { color: var(--amber); font-weight: 600; }
+.due.over { color: var(--red); font-weight: 600; }
+
+.minibtn {
+  font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 12px;
+  border: none; border-radius: 8px; background: var(--green); color: #fff; cursor: pointer;
+}
+.minibtn.ghost { background: none; color: var(--ink-soft); text-decoration: underline; padding: 8px 4px; }
+.minibtn.danger { background: var(--red); }
+.minibtn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.addform {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px; display: flex; flex-direction: column; gap: 8px;
+}
+.addform .row { display: flex; gap: 8px; }
+.addform input, .addform select, .newrow input, .newrow select {
+  font-family: inherit; font-size: 16px; padding: 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: #FAFBF9;
+  color: var(--ink); width: 100%; min-width: 0;
+}
+.addform input:focus-visible, .addform select:focus-visible,
+.newrow input:focus-visible, .newrow select:focus-visible { outline: 2px solid var(--green); }
+.btn {
+  font-family: inherit; font-size: 15px; font-weight: 600; padding: 11px;
+  border: none; border-radius: 8px; background: var(--green); color: #fff;
+  cursor: pointer; width: 100%;
+}
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.auto { width: auto; }
+.btn.ghost { background: none; color: var(--ink-soft); text-decoration: underline; }
+
+.envelope {
+  position: relative; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 14px 14px 16px; margin-bottom: 10px; overflow: hidden;
+}
+.fill { position: absolute; left: 0; bottom: 0; width: 100%; background: var(--green-soft); z-index: 0; transition: height 0.4s ease; }
+@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+.fill.warn { background: var(--amber-soft); } .fill.over { background: var(--red-soft); }
+.env-content { position: relative; z-index: 1; }
+.env-top { display: flex; justify-content: space-between; align-items: baseline; }
+.env-name { font-size: 18px; font-weight: 600; }
+.env-remaining { font-size: 15px; font-weight: 600; }
+.env-remaining.warn { color: var(--amber); } .env-remaining.over { color: var(--red); } .env-remaining.ok { color: var(--green); }
+.env-sub { display: flex; justify-content: space-between; margin-top: 6px; font-size: 13px; color: var(--ink-soft); flex-wrap: wrap; gap: 2px; }
+.env-actions { margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.linkbtn {
+  background: none; border: none; padding: 0; font-size: 13px; color: var(--ink-soft);
+  text-decoration: underline; cursor: pointer; font-family: inherit;
+}
+.linkbtn:focus-visible { outline: 2px solid var(--green); }
+
+.expense {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; margin-bottom: 8px;
+}
+.expense .meta { font-size: 13px; color: var(--ink-soft); }
+.expense .amt { font-weight: 600; }
+.del { background: none; border: none; color: var(--ink-soft); font-size: 16px; cursor: pointer; padding: 4px 8px; }
+.del:focus-visible { outline: 2px solid var(--red); }
+
+.empty {
+  text-align: center; color: var(--ink-soft); font-size: 14px; padding: 18px 10px;
+  border: 1px dashed var(--line); border-radius: 10px;
+}
+.newrow { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+.newrow input[type="text"] { flex: 2; }
+.newrow input[type="number"] { flex: 1; width: 80px; }
+.newrow button { width: auto; padding: 10px 14px; }
+#newCommitName { flex: 1 1 100%; }
+#newCommitAmt { flex: 1 1 80px; }
+#newCommitDue { flex: 1 1 80px; }
+#newCommitKind { flex: 1 1 100px; width: auto; }
+#newCommitMonth { flex: 1 1 110px; width: auto; }
+#addCommitBtn { flex: 0 0 auto; }
+.ta {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: #FAFBF9;
+  color: var(--ink); width: 100%; min-height: 90px; resize: vertical;
+}
+.ta:focus-visible { outline: 2px solid var(--green); }
+.note { font-size: 13px; color: var(--ink-soft); }
+
+/* auth screen */
+.auth-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 24px 18px; margin-top: 60px; display: flex; flex-direction: column; gap: 10px;
+}
+.auth-card h1 { font-family: 'Zilla Slab', serif; font-size: 26px; margin: 0 0 4px; text-align: center; }
+.auth-card .sub { text-align: center; font-size: 13px; color: var(--ink-soft); margin-bottom: 8px; }
+.auth-card input {
+  font-family: inherit; font-size: 16px; padding: 12px;
+  border: 1px solid var(--line); border-radius: 8px; background: #FAFBF9; width: 100%;
+}
+.auth-card input:focus-visible { outline: 2px solid var(--green); }
+.auth-msg { font-size: 13px; min-height: 18px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ AUTH SCREEN ============ -->
+  <div id="authScreen" class="hidden">
+    <div class="auth-card">
+      <h1>Household Budget</h1>
+      <div class="sub">Sign in on any device — your budget follows you.</div>
+      <input type="email" id="authEmail" placeholder="Email" autocomplete="email" aria-label="Email">
+      <input type="password" id="authPass" placeholder="Password" autocomplete="current-password" aria-label="Password">
+      <button class="btn" id="signInBtn">Sign in</button>
+      <button class="btn ghost" id="signUpBtn">Create account</button>
+      <div class="auth-msg" id="authMsg"></div>
+    </div>
+  </div>
+
+  <!-- ============ SETUP NOTICE (shown until Supabase keys are filled in) ============ -->
+  <div id="setupScreen" class="hidden">
+    <div class="auth-card">
+      <h1>Almost there</h1>
+      <div class="note">This app needs its Supabase keys. Open index.html and replace the two placeholder values at the top of the script (SUPABASE_URL and SUPABASE_ANON_KEY) with the ones from your Supabase project settings.</div>
+    </div>
+  </div>
+
+  <!-- ============ APP ============ -->
+  <div id="appScreen" class="hidden">
+    <div class="topbar">
+      <span id="userEmail"></span>
+      <button class="linkbtn" id="signOutBtn">Sign out</button>
+    </div>
+
+    <div class="monthbar">
+      <button id="prevMonth" aria-label="Previous month">&#8249;</button>
+      <div class="month-title display" id="monthTitle"></div>
+      <button id="nextMonth" aria-label="Next month">&#8250;</button>
+    </div>
+    <div class="savestate" id="saveState" aria-live="polite"></div>
+
+    <div class="plan">
+      <div class="plan-row">
+        <span class="lbl">Take-home income</span>
+        <span id="incomeCell"></span>
+      </div>
+      <div class="plan-row"><span class="lbl">&minus; Bills, debt &amp; savings</span><span class="mono" id="planCommitted"></span></div>
+      <div class="plan-row"><span class="lbl">&minus; Spending envelopes</span><span class="mono" id="planEnvelopes"></span></div>
+      <div class="plan-row total"><span class="lbl">Unassigned</span><span class="mono" id="planUnassigned"></span></div>
+      <div id="planAlert"></div>
+    </div>
+
+    <div class="section-title"><span>Bills, debt &amp; savings</span><span class="hint">check off as paid</span></div>
+    <div id="commitList"></div>
+    <div class="newrow">
+      <input type="text" id="newCommitName" placeholder="Name" aria-label="New commitment name">
+      <input type="number" id="newCommitAmt" inputmode="decimal" placeholder="$" aria-label="New commitment amount">
+      <input type="number" id="newCommitDue" inputmode="numeric" min="1" max="31" placeholder="Due day" aria-label="Day of month due (optional)">
+      <select id="newCommitKind" aria-label="Type">
+        <option value="bill">Bill</option><option value="debt">Debt</option><option value="savings">Savings</option><option value="yearly">Yearly bill</option>
+      </select>
+      <select id="newCommitMonth" class="hidden" aria-label="Month the yearly bill is due">
+        <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+        <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+        <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+        <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+      </select>
+      <button class="btn auto" id="addCommitBtn">Add</button>
+    </div>
+
+    <div class="section-title"><span>Log an expense</span></div>
+    <div class="addform">
+      <div class="row">
+        <input type="number" id="expAmount" inputmode="decimal" placeholder="Amount" aria-label="Expense amount">
+        <select id="expCat" aria-label="Category"></select>
+      </div>
+      <input type="text" id="expNote" placeholder="Note (optional) — e.g. Kroger run" aria-label="Note">
+      <button class="btn" id="addExpBtn"></button>
+    </div>
+
+    <div class="section-title"><span>Spending envelopes</span><span class="hint">hard caps — when it's gone, it's gone</span></div>
+    <div id="envList"></div>
+    <div class="newrow">
+      <input type="text" id="newCatName" placeholder="New envelope name" aria-label="New envelope name" style="flex:1 1 100%">
+      <select id="newCatPeriod" aria-label="Envelope period" style="flex:1 1 110px;width:auto">
+        <option value="monthly">Monthly cap</option><option value="yearly">Yearly cap</option>
+      </select>
+      <button class="btn auto" id="addCatBtn">Add</button>
+    </div>
+
+    <div class="section-title"><span>This month's expenses</span><span class="hint mono" id="expTotal"></span></div>
+    <div id="expList"></div>
+
+    <div class="section-title"><span>Backup &amp; restore</span></div>
+    <div class="addform">
+      <div class="note">Your budget saves to the cloud automatically. Backup codes are just an extra safety net or a way to move data manually.</div>
+      <button class="btn" id="showBackupBtn">Show my backup code</button>
+      <textarea class="ta hidden" id="backupArea" readonly aria-label="Backup code"></textarea>
+      <div class="note">Restore from a backup code:</div>
+      <textarea class="ta" id="restoreArea" placeholder="Paste your backup code here" aria-label="Paste backup code to restore"></textarea>
+      <button class="btn" id="restoreBtn">Restore</button>
+      <div class="note" id="restoreMsg"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+// =====================================================================
+// PASTE YOUR SUPABASE VALUES HERE (Project Settings -> API)
+// =====================================================================
+const SUPABASE_URL = "https://mwenahgrmxbzgkghdwki.supabase.co/rest/v1/";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13ZW5haGdybXhiemdrZ2hkd2tpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMjgwMzksImV4cCI6MjA5NjgwNDAzOX0.u_p6z7HYUKlbT5FpUrNCCM9Ms8wbKMGmYJDPGP-ZhSc";
+// =====================================================================
+
+const KEY = "household-budget-v1"; // local cache (also used to rescue pre-login data)
+const KIND_LABEL = { bill: "Bill", debt: "Debt", savings: "Savings", yearly: "Yearly" };
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const monthlyOf = c => c.kind === "yearly" ? c.amount / 12 : c.amount;
+
+let state = {
+  income: 0,
+  commitments: [
+    { id: "rent", name: "Mortgage / Rent", amount: 0, kind: "bill", dueDay: null, dueMonth: null },
+    { id: "utils", name: "Utilities", amount: 0, kind: "bill", dueDay: null, dueMonth: null },
+    { id: "cc", name: "Credit card paydown", amount: 0, kind: "debt", dueDay: null, dueMonth: null },
+    { id: "save", name: "Savings", amount: 0, kind: "savings", dueDay: null, dueMonth: null },
+  ],
+  paid: {},
+  categories: [
+    { id: "groc", name: "Groceries", budget: 600, period: "monthly" },
+    { id: "dine", name: "Dining Out", budget: 200, period: "monthly" },
+    { id: "gas", name: "Gas", budget: 250, period: "monthly" },
+    { id: "pets", name: "Pets", budget: 100, period: "monthly" },
+    { id: "fun", name: "Fun Money", budget: 150, period: "monthly" },
+  ],
+  expenses: [],
+};
+let monthKey = new Date().toISOString().slice(0, 7);
+let editing = null;
+let confirmRm = null;
+let sb = null;
+let currentUser = null;
+let dirty = false;          // unsynced local changes exist
+let saveTimer = null;
+let saveInFlight = false;
+
+// ---------- helpers ----------
+const fmtter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+const money = n => fmtter.format(Number.isFinite(n) ? n : 0);
+const monthLabel = key => {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+};
+const shiftMonth = (key, d) => {
+  const [y, m] = key.split("-").map(Number);
+  const dt = new Date(y, m - 1 + d, 1);
+  return dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0");
+};
+const uid = () => Math.random().toString(36).slice(2, 10);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const $ = id => document.getElementById(id);
+const ordinal = n => {
+  const s = ["th", "st", "nd", "rd"], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
+
+function applyData(data) {
+  if (!data || typeof data !== "object") return false;
+  let any = false;
+  if (Array.isArray(data.categories) && data.categories.length) { state.categories = data.categories; any = true; }
+  if (Array.isArray(data.expenses)) { state.expenses = data.expenses; any = true; }
+  if (Array.isArray(data.commitments)) { state.commitments = data.commitments; any = true; }
+  if (typeof data.income === "number") { state.income = data.income; any = true; }
+  if (data.paid && typeof data.paid === "object") { state.paid = data.paid; any = true; }
+  return any;
+}
+
+// ---------- persistence: local cache + cloud ----------
+function persistLocal() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* cache only */ }
+}
+function setSaveMsg(html) { $("saveState").innerHTML = html; }
+
+function scheduleCloudSave() {
+  dirty = true;
+  setSaveMsg("Saving&hellip;");
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(doCloudSave, 600);
+}
+async function doCloudSave() {
+  if (!sb || !currentUser) return;
+  saveInFlight = true;
+  try {
+    const { error } = await sb.from("budgets").upsert({
+      user_id: currentUser.id,
+      data: state,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw error;
+    dirty = false;
+    setSaveMsg('<span class="ok">&#10003; Saved to cloud</span>');
+  } catch (e) {
+    setSaveMsg('<span class="bad">&#9888; Cloud save failed (' + esc(e.message || e) + ') &mdash; will retry on next change</span>');
+  } finally {
+    saveInFlight = false;
+  }
+}
+async function fetchCloud() {
+  if (!sb || !currentUser) return null;
+  const { data, error } = await sb.from("budgets").select("data").eq("user_id", currentUser.id).maybeSingle();
+  if (error) throw error;
+  return data ? data.data : null;
+}
+
+function commit() { persistLocal(); scheduleCloudSave(); render(); }
+
+// ---------- render ----------
+function amountEditorHTML(id, val, label) {
+  return '<span class="inline-edit">' +
+    '<input type="number" inputmode="decimal" id="editAmount" aria-label="' + esc(label) + '" value="' + (val > 0 ? val : "") + '">' +
+    '<button class="minibtn" data-action="save-edit" data-id="' + esc(id) + '">Save</button>' +
+    '<button class="minibtn ghost" data-action="cancel-edit">Cancel</button></span>';
+}
+function commitEditorHTML(c) {
+  const isYearly = c.kind === "yearly";
+  const monthOpts = MONTHS.map((m, i) =>
+    '<option value="' + (i + 1) + '"' + (c.dueMonth === i + 1 ? " selected" : "") + '>' + m + '</option>'
+  ).join("");
+  return '<div class="edit-stack">' +
+    '<label>Name</label><input type="text" id="editName" value="' + esc(c.name) + '">' +
+    '<label>' + (isYearly ? "Amount per year" : "Monthly amount") + '</label><input type="number" inputmode="decimal" id="editAmount" value="' + (c.amount > 0 ? c.amount : "") + '">' +
+    (isYearly
+      ? '<label>Month it\'s due</label><select id="editMonth">' + monthOpts + '</select>' +
+        '<label>Day of that month (blank for none)</label><input type="number" inputmode="numeric" min="1" max="31" id="editDue" value="' + (c.dueDay || "") + '">'
+      : '<label>Day of month it\'s due (blank for none)</label><input type="number" inputmode="numeric" min="1" max="31" id="editDue" value="' + (c.dueDay || "") + '">') +
+    '<div class="btns"><button class="minibtn" data-action="save-edit" data-id="' + esc(c.id) + '">Save</button>' +
+    '<button class="minibtn ghost" data-action="cancel-edit">Cancel</button></div></div>';
+}
+function catEditorHTML(cat) {
+  const isYearly = cat.period === "yearly";
+  return '<div class="edit-stack">' +
+    '<label>Name</label><input type="text" id="editName" value="' + esc(cat.name) + '">' +
+    '<label>' + (isYearly ? "Cap per year" : "Cap per month") + '</label><input type="number" inputmode="decimal" id="editAmount" value="' + (cat.budget > 0 ? cat.budget : "") + '">' +
+    '<label>Cap applies per</label><select id="editPeriod">' +
+    '<option value="monthly"' + (!isYearly ? " selected" : "") + '>Month</option>' +
+    '<option value="yearly"' + (isYearly ? " selected" : "") + '>Year</option></select>' +
+    '<div class="btns"><button class="minibtn" data-action="save-edit" data-id="' + esc(cat.id) + '">Save</button>' +
+    '<button class="minibtn ghost" data-action="cancel-edit">Cancel</button></div></div>';
+}
+function dueInfoHTML(c, isPaid) {
+  const today = new Date();
+  const nowKey = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0");
+  if (c.kind === "yearly") {
+    if (!c.dueMonth) return "";
+    const viewMonth = parseInt(monthKey.split("-")[1], 10);
+    const monthName = MONTHS[c.dueMonth - 1];
+    let cls = "", text = "Due in " + monthName;
+    if (viewMonth === c.dueMonth && !isPaid) {
+      if (monthKey === nowKey && c.dueDay && today.getDate() > c.dueDay) {
+        cls = " over"; text = "Overdue &mdash; was due " + monthName + " " + ordinal(c.dueDay);
+      } else {
+        cls = " soon"; text = "Due this month" + (c.dueDay ? " (the " + ordinal(c.dueDay) + ")" : "");
+      }
+    }
+    return '<div class="due' + cls + '">' + text + '</div>';
+  }
+  if (!c.dueDay) return "";
+  let cls = "", text = "Due the " + ordinal(c.dueDay);
+  if (monthKey === nowKey && !isPaid) {
+    const daysLeft = c.dueDay - today.getDate();
+    if (daysLeft < 0) { cls = " over"; text = "Overdue &mdash; was due the " + ordinal(c.dueDay); }
+    else if (daysLeft === 0) { cls = " over"; text = "Due today (the " + ordinal(c.dueDay) + ")"; }
+    else if (daysLeft <= 5) { cls = " soon"; text = "Due in " + daysLeft + " day" + (daysLeft === 1 ? "" : "s") + " (the " + ordinal(c.dueDay) + ")"; }
+  }
+  return '<div class="due' + cls + '">' + text + '</div>';
+}
+
+function render() {
+  $("monthTitle").textContent = monthLabel(monthKey);
+  $("addExpBtn").textContent = "Add to " + monthLabel(monthKey);
+
+  const monthExpenses = state.expenses
+    .filter(e => e.date.slice(0, 7) === monthKey)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const spentByCat = {};
+  for (const e of monthExpenses) spentByCat[e.catId] = (spentByCat[e.catId] || 0) + e.amount;
+  const viewYear = monthKey.slice(0, 4);
+  const spentByCatYear = {};
+  for (const e of state.expenses) {
+    if (e.date.slice(0, 4) === viewYear) spentByCatYear[e.catId] = (spentByCatYear[e.catId] || 0) + e.amount;
+  }
+
+  const committedTotal = state.commitments.reduce((s, c) => s + monthlyOf(c), 0);
+  const envelopeTotal = state.categories.reduce((s, c) => s + (c.period === "yearly" ? c.budget / 12 : c.budget), 0);
+  const unallocated = state.income - committedTotal - envelopeTotal;
+  const monthPaid = state.paid[monthKey] || {};
+
+  // plan
+  if (editing === "income") {
+    $("incomeCell").innerHTML = amountEditorHTML("income", state.income, "Monthly take-home income");
+  } else {
+    $("incomeCell").innerHTML = '<span style="display:flex;align-items:center;gap:8px">' +
+      '<span class="mono">' + money(state.income) + '</span>' +
+      '<button class="linkbtn" data-action="edit" data-id="income">edit</button></span>';
+  }
+  $("planCommitted").textContent = money(committedTotal);
+  $("planEnvelopes").textContent = money(envelopeTotal);
+  const ua = $("planUnassigned");
+  ua.textContent = money(unallocated);
+  ua.style.color = unallocated < 0 ? "var(--red)" : "var(--green)";
+  let alertHTML = "";
+  if (state.income > 0 && unallocated < 0)
+    alertHTML = '<div class="alert bad">Your plan spends ' + money(Math.abs(unallocated)) + ' more than you bring in. Trim envelopes or commitments until this hits zero.</div>';
+  else if (state.income > 0 && unallocated > 0)
+    alertHTML = '<div class="alert good">' + money(unallocated) + " isn't assigned a job yet. Put it toward debt or savings before the month starts &mdash; unassigned money gets spent.</div>";
+  $("planAlert").innerHTML = alertHTML;
+
+  // commitments (sorted: monthly by due day, then yearly by due month)
+  const sortKey = c => c.kind === "yearly" ? 40 + (c.dueMonth || 13) : (c.dueDay || 39);
+  const sortedCommitments = state.commitments.slice().sort((a, b) => sortKey(a) - sortKey(b));
+  const viewMonthNum = parseInt(monthKey.split("-")[1], 10);
+  $("commitList").innerHTML = sortedCommitments.map(c => {
+    const isPaid = !!monthPaid[c.id];
+    const isYearly = c.kind === "yearly";
+    const checkRelevant = !isYearly || c.dueMonth === viewMonthNum;
+    let right;
+    if (editing === c.id) right = commitEditorHTML(c);
+    else if (confirmRm === c.id) right = '<span class="inline-edit">' +
+      '<button class="minibtn danger" data-action="remove" data-id="' + esc(c.id) + '">Remove</button>' +
+      '<button class="minibtn ghost" data-action="cancel-remove">Keep</button></span>';
+    else right = '<div class="amt mono">' + money(c.amount) + (isYearly ? '<span style="font-weight:400;font-size:12px;color:var(--ink-soft)">/yr</span>' : '') + '</div>' +
+      '<button class="del" data-action="edit" data-id="' + esc(c.id) + '" aria-label="Edit ' + esc(c.name) + '">&#9998;</button>' +
+      '<button class="del" data-action="confirm-remove" data-id="' + esc(c.id) + '" aria-label="Remove ' + esc(c.name) + '">&#10005;</button>';
+    const checkHTML = checkRelevant
+      ? '<button class="check' + (isPaid ? " on" : "") + '" data-action="toggle-paid" data-id="' + esc(c.id) + '" aria-label="Mark ' + esc(c.name) + (isPaid ? " unpaid" : " paid") + '">' + (isPaid ? "&#10003;" : "") + '</button>'
+      : '<span style="width:26px;flex-shrink:0"></span>';
+    const setAside = isYearly
+      ? '<div class="due">Setting aside ' + money(c.amount / 12) + '/mo</div>'
+      : '';
+    return '<div class="commit' + (isPaid && checkRelevant ? " paid" : "") + '">' +
+      checkHTML +
+      '<div class="body"><div class="name">' + esc(c.name) + '</div><div class="tag ' + c.kind + '">' + KIND_LABEL[c.kind] + '</div>' + setAside + dueInfoHTML(c, isPaid) + '</div>' + right + '</div>';
+  }).join("");
+
+  // expense category select (preserve selection)
+  const sel = $("expCat");
+  const prev = sel.value;
+  sel.innerHTML = state.categories.map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>').join("");
+  if (state.categories.some(c => c.id === prev)) sel.value = prev;
+
+  // envelopes
+  $("envList").innerHTML = state.categories.map(cat => {
+    const isYearly = cat.period === "yearly";
+    const spent = (isYearly ? spentByCatYear[cat.id] : spentByCat[cat.id]) || 0;
+    const pct = cat.budget > 0 ? Math.min(spent / cat.budget, 1) : spent > 0 ? 1 : 0;
+    const over = cat.budget > 0 && spent > cat.budget;
+    const warn = !over && cat.budget > 0 && spent / cat.budget >= 0.8;
+    const remaining = cat.budget - spent;
+    const tone = over ? "over" : warn ? "warn" : "ok";
+    let actions;
+    if (editing === cat.id) actions = catEditorHTML(cat);
+    else if (confirmRm === cat.id) {
+      const hasExp = state.expenses.some(e => e.catId === cat.id);
+      actions = '<button class="minibtn danger" data-action="remove" data-id="' + esc(cat.id) + '">Remove envelope' + (hasExp ? " &amp; its expenses" : "") + '</button>' +
+        '<button class="minibtn ghost" data-action="cancel-remove">Keep</button>';
+    } else {
+      actions = '<button class="linkbtn" data-action="edit" data-id="' + esc(cat.id) + '">Edit cap</button>' +
+        '<button class="linkbtn" data-action="confirm-remove" data-id="' + esc(cat.id) + '">Remove</button>';
+    }
+    const subLeft = isYearly ? money(spent) + ' spent in ' + viewYear : money(spent) + ' spent';
+    const subRight = isYearly
+      ? 'cap ' + money(cat.budget) + '/yr &middot; ' + money(cat.budget / 12) + '/mo set aside'
+      : 'cap ' + money(cat.budget);
+    return '<div class="envelope">' +
+      '<div class="fill ' + (tone !== "ok" ? tone : "") + '" style="height:' + (pct * 100) + '%"></div>' +
+      '<div class="env-content"><div class="env-top">' +
+      '<div class="env-name display">' + esc(cat.name) + (isYearly ? ' <span style="font-size:12px;font-weight:400;color:var(--ink-soft);font-family:\'IBM Plex Sans\',sans-serif">yearly</span>' : '') + '</div>' +
+      '<div class="env-remaining mono ' + tone + '">' + (over ? money(Math.abs(remaining)) + " over" : money(remaining) + " left" + (isYearly ? " this year" : "")) + '</div></div>' +
+      '<div class="env-sub"><span class="mono">' + subLeft + '</span><span class="mono">' + subRight + '</span></div>' +
+      '<div class="env-actions">' + actions + '</div></div></div>';
+  }).join("");
+
+  // expenses
+  const totalSpent = monthExpenses.reduce((s, e) => s + e.amount, 0);
+  $("expTotal").textContent = money(totalSpent) + " total";
+  $("expList").innerHTML = monthExpenses.length === 0
+    ? '<div class="empty">Nothing logged for ' + monthLabel(monthKey) + ' yet. Add your first expense above.</div>'
+    : monthExpenses.map(e => {
+        const cat = state.categories.find(c => c.id === e.catId);
+        const d = new Date(e.date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        return '<div class="expense"><div><div>' + esc(cat ? cat.name : "—") + (e.note ? " &mdash; " + esc(e.note) : "") + '</div>' +
+          '<div class="meta">' + d + '</div></div>' +
+          '<div style="display:flex;align-items:center;gap:6px"><div class="amt mono">' + money(e.amount) + '</div>' +
+          '<button class="del" data-action="del-expense" data-id="' + esc(e.id) + '" aria-label="Delete expense">&#10005;</button></div></div>';
+      }).join("");
+
+  const input = $("editName") || $("editAmount");
+  if (input) { input.focus(); input.select(); }
+}
+
+// ---------- actions ----------
+document.body.addEventListener("click", ev => {
+  const btn = ev.target.closest("[data-action]");
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id = btn.dataset.id;
+
+  if (action === "edit") { editing = id; confirmRm = null; render(); }
+  else if (action === "cancel-edit") { editing = null; render(); }
+  else if (action === "save-edit") {
+    const amtEl = $("editAmount");
+    const nameEl = $("editName");
+    const dueEl = $("editDue");
+    const val = amtEl ? parseFloat(amtEl.value) : NaN;
+    const newName = nameEl ? nameEl.value.trim() : null;
+    if (id === "income") {
+      if (Number.isFinite(val) && val >= 0) state.income = val;
+    } else {
+      const c = state.commitments.find(x => x.id === id);
+      if (c) {
+        if (Number.isFinite(val) && val >= 0) c.amount = val;
+        if (newName) c.name = newName;
+        if (dueEl) {
+          const due = parseInt(dueEl.value, 10);
+          c.dueDay = (Number.isFinite(due) && due >= 1 && due <= 31) ? due : null;
+        }
+        const monthEl = $("editMonth");
+        if (monthEl) c.dueMonth = parseInt(monthEl.value, 10);
+      }
+      const cat = state.categories.find(x => x.id === id);
+      if (cat) {
+        if (Number.isFinite(val) && val >= 0) cat.budget = val;
+        if (newName) cat.name = newName;
+        const periodEl = $("editPeriod");
+        if (periodEl) cat.period = periodEl.value;
+      }
+    }
+    editing = null;
+    commit();
+  }
+  else if (action === "confirm-remove") { confirmRm = id; editing = null; render(); }
+  else if (action === "cancel-remove") { confirmRm = null; render(); }
+  else if (action === "remove") {
+    state.commitments = state.commitments.filter(x => x.id !== id);
+    if (state.categories.some(c => c.id === id)) {
+      state.categories = state.categories.filter(c => c.id !== id);
+      state.expenses = state.expenses.filter(e => e.catId !== id);
+    }
+    confirmRm = null;
+    commit();
+  }
+  else if (action === "toggle-paid") {
+    const m = Object.assign({}, state.paid[monthKey] || {});
+    if (m[id]) delete m[id]; else m[id] = true;
+    state.paid[monthKey] = m;
+    commit();
+  }
+  else if (action === "del-expense") {
+    state.expenses = state.expenses.filter(e => e.id !== id);
+    commit();
+  }
+});
+
+document.body.addEventListener("keydown", ev => {
+  if (!["editAmount", "editName", "editDue"].includes(ev.target.id)) return;
+  if (ev.key === "Enter") {
+    const saveBtn = document.querySelector('[data-action="save-edit"]');
+    if (saveBtn) saveBtn.click();
+  }
+  if (ev.key === "Escape") { editing = null; render(); }
+});
+
+$("prevMonth").addEventListener("click", () => { monthKey = shiftMonth(monthKey, -1); editing = null; confirmRm = null; render(); });
+$("nextMonth").addEventListener("click", () => { monthKey = shiftMonth(monthKey, 1); editing = null; confirmRm = null; render(); });
+
+$("newCommitKind").addEventListener("change", () => {
+  $("newCommitMonth").classList.toggle("hidden", $("newCommitKind").value !== "yearly");
+});
+
+$("addCommitBtn").addEventListener("click", () => {
+  const name = $("newCommitName").value.trim();
+  const amt = parseFloat($("newCommitAmt").value);
+  if (!name || !Number.isFinite(amt) || amt < 0) return;
+  const kind = $("newCommitKind").value;
+  const due = parseInt($("newCommitDue").value, 10);
+  state.commitments.push({
+    id: uid(), name, amount: amt, kind,
+    dueDay: (Number.isFinite(due) && due >= 1 && due <= 31) ? due : null,
+    dueMonth: kind === "yearly" ? parseInt($("newCommitMonth").value, 10) : null,
+  });
+  $("newCommitName").value = ""; $("newCommitAmt").value = ""; $("newCommitDue").value = "";
+  commit();
+});
+
+$("addExpBtn").addEventListener("click", () => {
+  const amt = parseFloat($("expAmount").value);
+  if (!Number.isFinite(amt) || amt <= 0) return;
+  const now = new Date();
+  const parts = monthKey.split("-").map(Number);
+  const lastDay = new Date(parts[0], parts[1], 0).getDate();
+  const day = Math.min(now.getDate(), lastDay);
+  const date = monthKey + "-" + String(day).padStart(2, "0") + "T" + now.toTimeString().slice(0, 8);
+  state.expenses.push({ id: uid(), catId: $("expCat").value, amount: amt, note: $("expNote").value.trim(), date });
+  $("expAmount").value = ""; $("expNote").value = "";
+  commit();
+});
+
+$("addCatBtn").addEventListener("click", () => {
+  const name = $("newCatName").value.trim();
+  if (!name) return;
+  state.categories.push({ id: uid(), name, budget: 0, period: $("newCatPeriod").value });
+  $("newCatName").value = "";
+  commit();
+});
+
+$("showBackupBtn").addEventListener("click", () => {
+  const ta = $("backupArea");
+  ta.value = JSON.stringify(state);
+  ta.classList.toggle("hidden");
+  if (!ta.classList.contains("hidden")) { ta.focus(); ta.select(); }
+});
+
+$("restoreBtn").addEventListener("click", () => {
+  const msg = $("restoreMsg");
+  try {
+    const data = JSON.parse($("restoreArea").value.trim());
+    if (!applyData(data)) throw new Error("empty");
+    $("restoreArea").value = "";
+    msg.textContent = "Restored — your budget is back. Syncing to cloud…";
+    msg.style.color = "var(--green)";
+    commit();
+  } catch (e) {
+    msg.textContent = "That code couldn't be read. Make sure you pasted the whole thing, starting with { and ending with }.";
+    msg.style.color = "var(--red)";
+  }
+});
+
+// ---------- auth ----------
+function show(screen) {
+  $("authScreen").classList.toggle("hidden", screen !== "auth");
+  $("appScreen").classList.toggle("hidden", screen !== "app");
+  $("setupScreen").classList.toggle("hidden", screen !== "setup");
+}
+function authMsg(text, isErr) {
+  const el = $("authMsg");
+  el.textContent = text;
+  el.style.color = isErr ? "var(--red)" : "var(--green)";
+}
+
+async function startApp() {
+  $("userEmail").textContent = currentUser.email || "";
+  show("app");
+  // 1. show local cache instantly if present
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) applyData(JSON.parse(raw));
+  } catch (e) { /* ignore */ }
+  render();
+  setSaveMsg("Loading from cloud&hellip;");
+  // 2. cloud is the source of truth
+  try {
+    const cloud = await fetchCloud();
+    if (cloud) {
+      applyData(cloud);
+      persistLocal();
+      render();
+      setSaveMsg('<span class="ok">&#10003; Up to date</span>');
+    } else {
+      // no cloud data yet: rescue whatever this device has (your old budget!)
+      setSaveMsg("First sign-in &mdash; uploading this device's data&hellip;");
+      await doCloudSave();
+    }
+  } catch (e) {
+    setSaveMsg('<span class="bad">&#9888; Couldn\'t reach the cloud (' + esc(e.message || e) + '). Changes are kept on this device and will sync when it works.</span>');
+  }
+}
+
+// refresh from cloud when returning to the app (e.g. wife added expenses)
+document.addEventListener("visibilitychange", async () => {
+  if (document.hidden || !currentUser || dirty || saveInFlight) return;
+  try {
+    const cloud = await fetchCloud();
+    if (cloud) { applyData(cloud); persistLocal(); render(); }
+  } catch (e) { /* quiet */ }
+});
+
+$("signInBtn").addEventListener("click", async () => {
+  const email = $("authEmail").value.trim();
+  const pass = $("authPass").value;
+  if (!email || !pass) { authMsg("Enter your email and password.", true); return; }
+  authMsg("Signing in…", false);
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) authMsg(error.message, true);
+});
+
+$("signUpBtn").addEventListener("click", async () => {
+  const email = $("authEmail").value.trim();
+  const pass = $("authPass").value;
+  if (!email || !pass) { authMsg("Enter an email and a password (6+ characters).", true); return; }
+  authMsg("Creating account…", false);
+  const { data, error } = await sb.auth.signUp({ email, password: pass });
+  if (error) { authMsg(error.message, true); return; }
+  if (data.session) authMsg("Account created!", false);
+  else authMsg("Account created — check your email to confirm, then sign in.", false);
+});
+
+$("signOutBtn").addEventListener("click", async () => {
+  await sb.auth.signOut();
+});
+
+// ---------- start ----------
+(function init() {
+  if (SUPABASE_URL.includes("PASTE_") || SUPABASE_ANON_KEY.includes("PASTE_")) {
+    show("setup");
+    return;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sb.auth.onAuthStateChange((event, session) => {
+    const user = session ? session.user : null;
+    if (user && (!currentUser || currentUser.id !== user.id)) {
+      currentUser = user;
+      startApp();
+    } else if (!user) {
+      currentUser = null;
+      show("auth");
+    }
+  });
+  sb.auth.getSession().then(({ data }) => {
+    if (!data.session) show("auth");
+    // if a session exists, onAuthStateChange fires and starts the app
+  });
+})();
+</script>
+</body>
+</html>
